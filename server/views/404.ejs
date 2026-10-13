@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 - Page Not Found</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #3ae38c;
+        --primary-light: #26db8d;
+        --primary-dark: #44ae7c;
+        --background: #f8fafc;
+        --text: #111; /* black */
+        --text-light: #555;
+        --card: #ffffff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--background);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text);
+        line-height: 1.5;
+        padding: 1rem;
+        background-image: radial-gradient(
+          circle at 10% 20%,
+          rgba(79, 191, 139, 0.03) 0%,
+          rgba(79, 191, 139, 0.03) 90%
+        );
+      }
+
+      .wrapper {
+        text-align: center;
+        max-width: 500px;
+        padding: 3rem 2rem;
+        background-color: var(--card);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04),
+          0 10px 10px -5px rgba(0, 0, 0, 0.01);
+        border-radius: 1.5rem;
+        animation: fadeIn 0.6s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .wrapper::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 8px;
+        background: linear-gradient(
+          90deg,
+          var(--primary),
+          var(--primary-light)
+        );
+      }
+
+      .icon {
+        font-size: 0;
+        margin-bottom: 1.5rem;
+      }
+
+      .icon svg {
+        width: 120px;
+        height: 120px;
+        color: var(--primary);
+        animation: float 6s ease-in-out infinite;
+      }
+
+      h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(
+          90deg,
+          var(--primary),
+          var(--primary-light)
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .subtitle {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        color: var(--text);
+      }
+
+      .description {
+        font-size: 1rem;
+        color: var(--text-light);
+        margin-bottom: 2rem;
+        max-width: 380px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .path-info {
+        font-family: "SF Mono", "Roboto Mono", monospace;
+        font-size: 0.85rem;
+        background-color: #f1f5f9;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        color: #475569;
+        margin-bottom: 2rem;
+        display: inline-block;
+        word-break: break-all;
+      }
+
+      .btn-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      a.btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--primary);
+        color: white;
+        text-decoration: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        border: 2px solid var(--primary);
+      }
+
+      a.btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 191, 139, 0.2);
+      }
+
+      a.btn.outline {
+        background-color: transparent;
+        color: var(--primary);
+      }
+
+      a.btn.outline:hover {
+        background-color: rgba(79, 191, 139, 0.05);
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 500px) {
+        .wrapper {
+          padding: 2rem 1.5rem;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+
+        .subtitle {
+          font-size: 1.1rem;
+        }
+
+        .btn-container {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        a.btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+      <h1>404</h1>
+      <p class="subtitle">Page Not Found</p>
+      <p class="description">
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <div class="path-info">
+        Path: <span id="path-display">/nonexistent-page</span>
+      </div>
+      <div class="btn-container">
+        <a href="/" class="btn">Go to Homepage</a>
+        <a href="#" onclick="history.back()" class="btn outline">Go Back</a>
+      </div>
+    </div>
+
+    <script>
+      // Dynamically set the current path
+      document.getElementById("path-display").textContent =
+        window.location.pathname;
+    </script>
+  </body>
+</html>
