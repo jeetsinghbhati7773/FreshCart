@@ -3,8 +3,9 @@ import { FaPaperPlane } from "react-icons/fa";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { io } from "socket.io-client";
 import axios from "../utils/axiosInstance";
+import { BACKEND_URL, API_URL } from "../config";
 
-const socket = io("https://hitman-grocery-backend.onrender.com", {
+const socket = io(BACKEND_URL, {
   withCredentials: true,
 });
 
@@ -53,7 +54,7 @@ const UserChat = () => {
     const fetchUser = async () => {
       try {
         const res = await axios.get(
-          "https://hitman-grocery-backend.onrender.com/api/users/me",
+          `${API_URL}/users/me`,
           {
             withCredentials: true,
           }
@@ -145,7 +146,7 @@ const UserChat = () => {
       // Save to database
       axios
         .post(
-          `https://hitman-grocery-backend.onrender.com/api/chat/send`,
+          `${API_URL}/chat/send`,
           msgObj,
           {
             withCredentials: true,
@@ -165,7 +166,7 @@ const UserChat = () => {
     if (!open && senderId) {
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/chat/${senderId}`,
+          `${API_URL}/chat/${senderId}`,
           { withCredentials: true }
         );
 

@@ -42,10 +42,19 @@ const AllProducts = () => {
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
 
+        const catStr = String(product.category || "").toLowerCase();
+        const selStr = String(selectedCategory || "").toLowerCase();
         const matchesCategory =
           !selectedCategory ||
-          String(product.category || "").toLowerCase() ===
-            selectedCategory.toLowerCase();
+          catStr === selStr ||
+          (selStr.includes("veggie") && catStr === "vegetables") ||
+          (selStr.includes("fruit") && catStr === "fruits") ||
+          (selStr.includes("drink") && catStr === "drinks") ||
+          (selStr.includes("dairy") && catStr === "dairy") ||
+          (selStr.includes("instant") && catStr === "instant") ||
+          (selStr.includes("baker") && catStr === "bakery") ||
+          (selStr.includes("grain") && catStr === "grains") ||
+          (selStr.includes("snack") && catStr === "snacks");
 
         return matchesSearch && matchesCategory;
       })

@@ -18,7 +18,7 @@ const ProtectedSellerRoute = ({ children }) => {
 
       try {
         const res = await sellerAxios.get(
-          "https://hitman-grocery-backend.onrender.com/api/seller/check-auth",
+          "/seller/check-auth",
           {
             headers: {
               Authorization: `Bearer ${token}`, // ✅ Fix here

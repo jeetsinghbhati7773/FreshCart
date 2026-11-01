@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  "proxy": "https://hitman-grocery-backend.onrender.com",
+  "proxy": "http://localhost:10000",
   "dependencies": {
     "@tailwindcss/vite": "^4.1.11",
     "axios": "^1.10.0",

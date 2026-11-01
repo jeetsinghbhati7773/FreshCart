@@ -1,23 +1,4 @@
-import mongoose from "mongoose";
+import prisma from "../config/prisma.js";
 
-const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-  },
-  { minimize: false, timestamps: true }
-);
-
-const User = mongoose.models.user || mongoose.model("user", userSchema);
+const User = prisma.user;
 export default User;

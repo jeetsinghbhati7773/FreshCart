@@ -1,7 +1,8 @@
 // utils/axiosInstance.js
 import axios from "axios";
+import { API_URL } from "../config";
 
-const baseURL = "https://hitman-grocery-backend.onrender.com/api";
+const baseURL = API_URL;
 
 // 👉 For regular users
 export const userAxios = axios.create({ baseURL });

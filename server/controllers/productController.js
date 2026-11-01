@@ -1,11 +1,11 @@
-import Product from "../models/Product.js";
-import Order from "../models/orders.js";
-import mongoose from "mongoose";
+import prisma from "../config/prisma.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
-    console.log(products);
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
     res.status(200).json({ products });
   } catch (err) {
     console.error("Error fetching products:", err);
@@ -17,52 +17,55 @@ export const getAllProducts = async (req, res) => {
 
 export const getBestSellers = async (req, res) => {
   try {
-    const topOrdered = await Order.aggregate([
-      { $unwind: "$products" },
-      {
-        $group: {
-          _id: "$products.product",
-          totalOrdered: { $sum: "$products.quantity" },
+    // Group order items by productId and sum quantity
+    const topOrdered = await prisma.orderItem.groupBy({
+      by: ["productId"],
+      _sum: { quantity: true },
+      orderBy: {
+        _sum: {
+          quantity: "desc",
         },
       },
-      { $sort: { totalOrdered: -1 } },
-      { $limit: 10 }, // Get more in case some are out of stock
-    ]);
-
-    let productIds = topOrdered.map((item) => item._id);
-
-    // Get only in-stock products from the top ordered list
-    let products = await Product.find({
-      _id: { $in: productIds },
-      inStock: true,
+      take: 10,
     });
 
-    // If fewer than 4 in-stock products, fill with fallback in-stock ones
-    if (products.length < 4) {
-      const fallbackIds = [
-        "686597adb02253cf3ee45b19",
-        "6868df5143f2a0c3271d017e",
-        "686a2eeaf67f5611975d5b76",
-        "686a2f2af67f5611975d5b78",
-      ];
+    const productIds = topOrdered.map((item) => item.productId);
 
-      const needed = 4 - products.length;
-
-      const additionalProducts = await Product.find({
-        _id: { $in: fallbackIds },
+    // Get in-stock products from top ordered list
+    let products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds },
         inStock: true,
-        _id: { $nin: products.map((p) => p._id) },
-      }).limit(needed);
+      },
+    });
+
+    // If fewer than 4 in-stock products, fill with other in-stock products
+    if (products.length < 4) {
+      const existingIds = products.map((p) => p.id);
+      const additionalProducts = await prisma.product.findMany({
+        where: {
+          inStock: true,
+          id: { notIn: existingIds },
+        },
+        take: 4 - products.length,
+      });
 
       products = [...products, ...additionalProducts];
     }
 
-    // Sort products to match original top order
+    // Sort to match top order rankings if available
     const sortedProducts = productIds
-      .map((id) => products.find((p) => p._id.toString() === id.toString()))
-      .filter(Boolean); // remove any undefined if some IDs were filtered out
+      .map((id) => products.find((p) => p.id === id))
+      .filter(Boolean);
 
-    res.json(sortedProducts.slice(0, 4)); // Ensure only top 4
+    // Append any extra products needed to reach 4
+    for (const p of products) {
+      if (!sortedProducts.some((sp) => sp.id === p.id)) {
+        sortedProducts.push(p);
+      }
+    }
+
+    res.json(sortedProducts.slice(0, 4));
   } catch (err) {
     console.error("Error fetching best sellers:", err);
     res.status(500).json({ message: "Server error" });
@@ -71,7 +74,9 @@ export const getBestSellers = async (req, res) => {
 
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await prisma.product.findUnique({
+      where: { id: req.params.id },
+    });
     if (!product) return res.status(404).json({ error: "Product not found" });
     res.json(product);
   } catch (err) {
@@ -104,16 +109,20 @@ export const createProduct = async (req, res) => {
 
     const imageUrls = await Promise.all(uploadPromises);
 
-    const newProduct = new Product({
-      name,
-      description,
-      category,
-      price,
-      offerPrice,
-      image: imageUrls,
-    });
+    const parsedDescription = Array.isArray(description)
+      ? description
+      : [description].filter(Boolean);
 
-    await newProduct.save();
+    const newProduct = await prisma.product.create({
+      data: {
+        name,
+        description: parsedDescription,
+        category,
+        price: parseFloat(price),
+        offerPrice: parseFloat(offerPrice),
+        image: imageUrls,
+      },
+    });
 
     res.status(201).json({ message: "Product created", product: newProduct });
   } catch (error) {
@@ -124,7 +133,9 @@ export const createProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
+    await prisma.product.delete({
+      where: { id: req.params.id },
+    });
     res.status(200).json({ message: "Product deleted" });
   } catch (err) {
     res
@@ -136,12 +147,14 @@ export const deleteProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   const { offerPrice, inStock } = req.body;
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { offerPrice, inStock },
-      { new: true }
-    );
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    const updateData = {};
+    if (offerPrice !== undefined) updateData.offerPrice = parseFloat(offerPrice);
+    if (inStock !== undefined) updateData.inStock = inStock;
+
+    const product = await prisma.product.update({
+      where: { id: req.params.id },
+      data: updateData,
+    });
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ error: "Failed to update product" });
@@ -150,7 +163,9 @@ export const updateProduct = async (req, res) => {
 
 export const getSellerProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch products" });

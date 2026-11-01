@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { categories } from "../../assets/assets";
+import { API_URL } from "../../config";
 import toast from "react-hot-toast";
 
 const AddItems = () => {
@@ -30,7 +31,7 @@ const AddItems = () => {
 
     try {
       const res = await fetch(
-        `https://hitman-grocery-backend.onrender.com/api/seller/add-product`,
+        `${API_URL}/seller/add-product`,
         {
           method: "POST",
           body: formData,

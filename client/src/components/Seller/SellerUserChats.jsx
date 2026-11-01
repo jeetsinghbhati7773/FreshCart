@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { FaArrowLeft } from "react-icons/fa";
+import { BACKEND_URL, API_URL } from "../../config";
 
-const socket = io("https://hitman-grocery-backend.onrender.com", {
+const socket = io(BACKEND_URL, {
   withCredentials: true,
 });
 
@@ -112,7 +113,7 @@ const SellerUserChats = () => {
     const connectAndJoin = async () => {
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/users/me`,
+          `${API_URL}/users/me`,
           {
             withCredentials: true,
           }
@@ -139,7 +140,7 @@ const SellerUserChats = () => {
     const fetchUsers = async () => {
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/chat/all-users`,
+          `${API_URL}/chat/all-users`,
           {
             withCredentials: true,
           }
@@ -158,7 +159,7 @@ const SellerUserChats = () => {
     const fetchUnread = async () => {
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/chat/unread-status`,
+          `${API_URL}/chat/unread-status`,
           {
             withCredentials: true,
           }
@@ -192,14 +193,14 @@ const SellerUserChats = () => {
       const fetchMessages = async () => {
         try {
           const res = await axios.get(
-            `https://hitman-grocery-backend.onrender.com/api/chat/${selectedUser._id}`,
+            `${API_URL}/chat/${selectedUser._id}`,
             { withCredentials: true }
           );
           setMessages(res.data);
 
           // Mark messages as read
           await axios.post(
-            `https://hitman-grocery-backend.onrender.com/api/chat/mark-read/${selectedUser._id}`,
+            `${API_URL}/chat/mark-read/${selectedUser._id}`,
             {},
             { withCredentials: true }
           );
@@ -236,7 +237,7 @@ const SellerUserChats = () => {
 
     axios
       .post(
-        `https://hitman-grocery-backend.onrender.com/api/chat/send`,
+        `${API_URL}/chat/send`,
         msgObj,
         {
           withCredentials: true,

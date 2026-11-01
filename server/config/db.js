@@ -1,15 +1,13 @@
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
+import prisma from "./prisma.js";
+
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(
-      `${process.env.MONGO_URI}/HitmanGrocery`
-    );
-    console.log(`MongoDB Connected`);
+    await prisma.$connect();
+    console.log("🐘 PostgreSQL Connected successfully via Prisma");
   } catch (error) {
-    console.log(error);
-    process.exit(1);
+    console.error("❌ PostgreSQL Connection Error:", error.message);
+    console.error("Please make sure your PostgreSQL database is running and DATABASE_URL in .env is correct.");
   }
 };
+
 export default connectDB;

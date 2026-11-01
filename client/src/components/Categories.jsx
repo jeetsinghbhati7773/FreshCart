@@ -17,7 +17,7 @@ const Categories = () => {
             onClick={() => {
               navigate(
                 `/products?category=${encodeURIComponent(
-                  category.text.toLowerCase()
+                  category.path.toLowerCase()
                 )}`
               );
 

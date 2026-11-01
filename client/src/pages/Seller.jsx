@@ -96,7 +96,7 @@ const Seller = () => {
   const handleLogout = async () => {
     try {
       const response = await sellerAxios.get(
-        "https://hitman-grocery-backend.onrender.com/api/seller/logout",
+        "/seller/logout",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("sellerToken")}`,

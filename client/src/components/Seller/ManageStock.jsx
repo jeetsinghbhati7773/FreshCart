@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FiEdit } from "react-icons/fi";
 import axios from "axios";
+import { API_URL } from "../../config";
 import toast from "react-hot-toast";
 
 const ManageStock = () => {
@@ -10,7 +11,7 @@ const ManageStock = () => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(
-          "https://hitman-grocery-backend.onrender.com/api/seller/products"
+          `${API_URL}/seller/products`
         );
         //console.log("👉 Backend Response:", res.data);
         setProducts(res.data);
@@ -71,7 +72,7 @@ const ProductRow = ({ product }) => {
   const updateProduct = async () => {
     try {
       await axios.put(
-        `https://hitman-grocery-backend.onrender.com/api/seller/update/${product._id}`,
+        `${API_URL}/seller/update/${product._id}`,
         {
           offerPrice: Number(price),
           inStock,
@@ -111,7 +112,7 @@ const ProductRow = ({ product }) => {
     setInStock(newVal);
     try {
       await axios.put(
-        `https://hitman-grocery-backend.onrender.com/api/seller/update/${product._id}`,
+        `${API_URL}/seller/update/${product._id}`,
         {
           offerPrice: Number(price),
           inStock: newVal,

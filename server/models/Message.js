@@ -1,30 +1,4 @@
-import mongoose from "mongoose";
+import prisma from "../config/prisma.js";
 
-const messageSchema = new mongoose.Schema(
-  {
-    senderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
-      required: true,
-    },
-    message: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    fromSeller: {
-      type: Boolean,
-      required: true,
-    },
-    isUnreadForSeller: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const Message = mongoose.model("Message", messageSchema);
+const Message = prisma.message;
 export default Message;

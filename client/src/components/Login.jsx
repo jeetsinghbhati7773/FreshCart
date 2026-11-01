@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import axios from "../utils/axiosInstance";
+import { API_URL } from "../config";
 import toast from "react-hot-toast";
 
 const Login = () => {
@@ -55,7 +56,7 @@ const Login = () => {
     try {
       setLoadingOtp(true);
       const res = await axios.post(
-        "https://hitman-grocery-backend.onrender.com/api/otp/send",
+        `${API_URL}/otp/send`,
         { email: formData.email }
       );
       toast.success(res.data.message);
@@ -74,7 +75,7 @@ const Login = () => {
     try {
       setLoadingOtp(true);
       const res = await axios.post(
-        "https://hitman-grocery-backend.onrender.com/api/otp/verify",
+        `${API_URL}/otp/verify`,
         {
           email: formData.email,
           otp,
@@ -112,7 +113,7 @@ const Login = () => {
       switch (currentView) {
         case "register":
           res = await axios.post(
-            "https://hitman-grocery-backend.onrender.com/api/users/register",
+            `${API_URL}/users/register`,
             {
               name: formData.name,
               email: formData.email,
@@ -123,7 +124,7 @@ const Login = () => {
 
         case "login":
           res = await axios.post(
-            "https://hitman-grocery-backend.onrender.com/api/users/login",
+            `${API_URL}/users/login`,
             {
               email: formData.email,
               password: formData.password,
@@ -133,7 +134,7 @@ const Login = () => {
 
         case "forgot":
           res = await axios.post(
-            "https://hitman-grocery-backend.onrender.com/api/users/reset-password",
+            `${API_URL}/users/reset-password`,
             {
               email: formData.email,
               newPassword: formData.newPassword,

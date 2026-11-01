@@ -1,6 +1,6 @@
 import express from "express";
 import crypto from "crypto";
-import Otp from "../models/Otp.js";
+import prisma from "../config/prisma.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
 const router = express.Router();
@@ -33,16 +33,18 @@ router.post("/send", async (req, res) => {
     // Hash OTP for security
     const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
 
-    // Delete any existing OTP for this email
-    await Otp.deleteMany({ email });
-
-    // Save new OTP to database
-    const otpDocument = new Otp({
-      email: email.toLowerCase(),
-      otp: hashedOtp,
+    // Delete any existing OTPs for this email
+    await prisma.otp.deleteMany({
+      where: { email: email.toLowerCase() },
     });
 
-    await otpDocument.save();
+    // Save new OTP to database
+    await prisma.otp.create({
+      data: {
+        email: email.toLowerCase(),
+        otp: hashedOtp,
+      },
+    });
 
     // Send email
     await sendEmail(email, "Hitman Grocery OTP", `Your OTP is ${otp}`);
@@ -82,9 +84,11 @@ router.post("/verify", async (req, res) => {
       .digest("hex");
 
     // Find OTP in database
-    const otpDocument = await Otp.findOne({
-      email: email.toLowerCase(),
-      otp: hashedOtp,
+    const otpDocument = await prisma.otp.findFirst({
+      where: {
+        email: email.toLowerCase(),
+        otp: hashedOtp,
+      },
     });
 
     if (!otpDocument) {
@@ -94,8 +98,18 @@ router.post("/verify", async (req, res) => {
       });
     }
 
+    // Check expiration (5 minutes = 300,000 ms)
+    const ageInMinutes = (Date.now() - new Date(otpDocument.createdAt).getTime()) / (1000 * 60);
+    if (ageInMinutes > 5) {
+      await prisma.otp.delete({ where: { id: otpDocument.id } });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+
     // Delete the OTP after successful verification
-    await Otp.deleteOne({ _id: otpDocument._id });
+    await prisma.otp.delete({ where: { id: otpDocument.id } });
 
     res.status(200).json({
       success: true,

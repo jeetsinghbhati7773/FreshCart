@@ -16,9 +16,7 @@ const SellerOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await sellerAxios.get(
-          "https://hitman-grocery-backend.onrender.com/api/orders/all"
-        );
+        const res = await sellerAxios.get("/orders/all");
 
         setOrders(res.data.orders || []);
       } catch (err) {

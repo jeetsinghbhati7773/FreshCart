@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.js";
+import prisma from "../config/prisma.js";
 
 const authUser = async (req, res, next) => {
   try {
@@ -17,8 +17,17 @@ const authUser = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Get user from DB
-    const user = await User.findById(decoded.id).select("-password");
+    // Get user from DB excluding password
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
     if (!user) {
       return res

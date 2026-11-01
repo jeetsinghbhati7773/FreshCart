@@ -1,4 +1,4 @@
-import Product from "../models/Product.js";
+import prisma from "../config/prisma.js";
 import cloudinary from "../utils/cloudinary.js";
 
 // Add product with images
@@ -27,16 +27,20 @@ export const addProductWithImages = async (req, res) => {
 
     const imageUrls = await Promise.all(uploadPromises);
 
-    const newProduct = new Product({
-      name,
-      description,
-      category,
-      price,
-      offerPrice,
-      image: imageUrls,
-    });
+    const parsedDescription = Array.isArray(description)
+      ? description
+      : [description].filter(Boolean);
 
-    await newProduct.save();
+    const newProduct = await prisma.product.create({
+      data: {
+        name,
+        description: parsedDescription,
+        category,
+        price: parseFloat(price),
+        offerPrice: parseFloat(offerPrice),
+        image: imageUrls,
+      },
+    });
 
     res.status(201).json({ message: "Product created", product: newProduct });
   } catch (error) {
@@ -48,7 +52,9 @@ export const addProductWithImages = async (req, res) => {
 // Get all products (for seller dashboard)
 export const getAllProductsForSeller = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+    });
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch products" });
@@ -59,12 +65,14 @@ export const getAllProductsForSeller = async (req, res) => {
 export const updateProductDetails = async (req, res) => {
   const { offerPrice, inStock } = req.body;
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { offerPrice, inStock },
-      { new: true }
-    );
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    const updateData = {};
+    if (offerPrice !== undefined) updateData.offerPrice = parseFloat(offerPrice);
+    if (inStock !== undefined) updateData.inStock = inStock;
+
+    const product = await prisma.product.update({
+      where: { id: req.params.id },
+      data: updateData,
+    });
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ error: "Failed to update product" });

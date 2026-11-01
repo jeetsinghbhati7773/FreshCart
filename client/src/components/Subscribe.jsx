@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "../utils/axiosInstance";
+import { API_URL } from "../config";
 import toast from "react-hot-toast";
 
 const Subscribe = () => {
@@ -9,7 +10,7 @@ const Subscribe = () => {
     e.preventDefault();
     try {
       await axios.post(
-        "https://hitman-grocery-backend.onrender.com/api/subscribe",
+        `${API_URL}/subscribe`,
         { email }
       );
       toast.success("Subscribed successfully!");

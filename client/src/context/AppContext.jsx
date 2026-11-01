@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../utils/axiosInstance";
+import { API_URL } from "../config";
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
@@ -22,7 +23,7 @@ export const AppContextProvider = ({ children }) => {
 
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/userAuth/profile`,
+          `${API_URL}/userAuth/profile`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -66,7 +67,7 @@ export const AppContextProvider = ({ children }) => {
       setLoadingProducts(true);
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/products`
+          `${API_URL}/products`
         );
         setProducts(res.data.products || []);
         setProductError(null);

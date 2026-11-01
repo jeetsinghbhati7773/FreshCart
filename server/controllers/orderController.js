@@ -1,5 +1,4 @@
-import Order from "../models/orders.js";
-import Product from "../models/Product.js";
+import prisma from "../config/prisma.js";
 
 export const createOrder = async (req, res) => {
   const { products, shippingAddress, paymentMethod } = req.body;
@@ -12,7 +11,9 @@ export const createOrder = async (req, res) => {
     let subtotal = 0;
 
     for (const item of products) {
-      const product = await Product.findById(item.product);
+      const product = await prisma.product.findUnique({
+        where: { id: item.product },
+      });
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -23,17 +24,39 @@ export const createOrder = async (req, res) => {
     const gst = Math.round(subtotal * 0.05);
     const totalAmount = subtotal + gst;
 
-    const newOrder = await Order.create({
-      user: req.user._id,
-      products,
-      shippingAddress,
-      paymentMethod,
-      totalAmount,
+    const newOrder = await prisma.order.create({
+      data: {
+        userId: req.user.id,
+        shippingAddress,
+        paymentMethod,
+        totalAmount,
+        orderItems: {
+          create: products.map((item) => ({
+            productId: item.product,
+            quantity: item.quantity,
+          })),
+        },
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
+
+    const formattedOrder = {
+      ...newOrder,
+      products: newOrder.orderItems.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+      })),
+    };
 
     res
       .status(201)
-      .json({ message: "Order placed successfully", order: newOrder });
+      .json({ message: "Order placed successfully", order: formattedOrder });
   } catch (err) {
     console.error("Order creation failed:", err);
     res.status(500).json({ message: "Server error" });
@@ -42,11 +65,27 @@ export const createOrder = async (req, res) => {
 
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate("products.product")
-      .sort({ createdAt: -1 });
+    const orders = await prisma.order.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
 
-    res.status(200).json({ orders });
+    const formattedOrders = orders.map((o) => ({
+      ...o,
+      products: o.orderItems.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+      })),
+    }));
+
+    res.status(200).json({ orders: formattedOrders });
   } catch (err) {
     res
       .status(500)
@@ -56,12 +95,40 @@ export const getMyOrders = async (req, res) => {
 
 export const getAllOrdersForSeller = async (req, res) => {
   try {
-    const orders = await Order.find()
-      .sort({ createdAt: -1 })
-      .populate("user", "name email")
-      .populate("products.product", "name price image");
+    const orders = await prisma.order.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                price: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-    res.status(200).json({ orders });
+    const formattedOrders = orders.map((o) => ({
+      ...o,
+      products: o.orderItems.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+      })),
+    }));
+
+    res.status(200).json({ orders: formattedOrders });
   } catch (err) {
     console.error("Error fetching all orders:", err);
     res.status(500).json({ message: "Failed to fetch orders" });
@@ -72,16 +139,10 @@ export const getAllOrdersForSeller = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await Order.findById(req.params.id);
-
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
-
-    order.status = status;
-    await order.save();
+    const order = await prisma.order.update({
+      where: { id: req.params.id },
+      data: { status },
+    });
 
     res.status(200).json({ success: true, message: "Status updated", order });
   } catch (error) {
@@ -92,7 +153,10 @@ export const updateOrderStatus = async (req, res) => {
 // GET /api/orders/status/:id
 export const getOrderStatus = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).select("status");
+    const order = await prisma.order.findUnique({
+      where: { id: req.params.id },
+      select: { status: true },
+    });
 
     if (!order) {
       return res

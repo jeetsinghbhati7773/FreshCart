@@ -7,7 +7,7 @@ export default defineConfig({
     //https: true,
     proxy: {
       "/api": {
-        target: "https://hitman-grocery-backend.onrender.com",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:10000",
         changeOrigin: true,
         secure: false,
       },

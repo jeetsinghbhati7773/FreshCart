@@ -1,16 +1,28 @@
-import Message from "../models/Message.js";
-import User from "../models/user.js";
+import prisma from "../config/prisma.js";
 
 // Get all users in a chat
 export const getAllUsersInChat = async (req, res) => {
   try {
-    // Get distinct user IDs from the Message collection
-    const userIds = await Message.distinct("senderId");
+    // Get distinct sender IDs from messages
+    const distinctSenders = await prisma.message.findMany({
+      select: { senderId: true },
+      distinct: ["senderId"],
+    });
+
+    const userIds = distinctSenders.map((m) => m.senderId);
 
     // Fetch user details for those IDs
-    const users = await User.find({ _id: { $in: userIds } })
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
     res.status(200).json(users);
   } catch (error) {
@@ -28,16 +40,16 @@ export const sendMessage = async (req, res) => {
   }
 
   try {
-    const newMsg = new Message({
-      senderId,
-      message,
-      fromSeller,
-      // Set unread status correctly - only user messages are unread for seller
-      isUnreadForSeller: !fromSeller,
+    const newMsg = await prisma.message.create({
+      data: {
+        senderId,
+        message,
+        fromSeller: Boolean(fromSeller),
+        // Set unread status - only user messages are unread for seller
+        isUnreadForSeller: !fromSeller,
+      },
     });
 
-    await newMsg.save();
-    //console.log("💾 Message saved to DB:", newMsg);
     res.status(201).json(newMsg);
   } catch (error) {
     console.error("Error saving message:", error);
@@ -54,7 +66,10 @@ export const getMessages = async (req, res) => {
   }
 
   try {
-    const messages = await Message.find({ senderId }).sort("createdAt");
+    const messages = await prisma.message.findMany({
+      where: { senderId },
+      orderBy: { createdAt: "asc" },
+    });
     res.status(200).json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -65,23 +80,19 @@ export const getMessages = async (req, res) => {
 // Get unread status for all users
 export const getUnreadStatus = async (req, res) => {
   try {
-    const unreadMessages = await Message.aggregate([
-      {
-        $match: {
-          fromSeller: false,
-          isUnreadForSeller: true,
-        },
+    const unreadMessages = await prisma.message.groupBy({
+      by: ["senderId"],
+      where: {
+        fromSeller: false,
+        isUnreadForSeller: true,
       },
-      {
-        $group: {
-          _id: "$senderId",
-          count: { $sum: 1 },
-        },
+      _count: {
+        id: true,
       },
-    ]);
+    });
 
-    const unreadMap = unreadMessages.reduce((map, { _id }) => {
-      map[_id.toString()] = true;
+    const unreadMap = unreadMessages.reduce((map, item) => {
+      map[item.senderId] = true;
       return map;
     }, {});
 
@@ -100,12 +111,17 @@ export const markMessagesAsRead = async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    await Message.updateMany(
-      { senderId: userId, fromSeller: false, isUnreadForSeller: true },
-      { $set: { isUnreadForSeller: false } }
-    );
+    await prisma.message.updateMany({
+      where: {
+        senderId: userId,
+        fromSeller: false,
+        isUnreadForSeller: true,
+      },
+      data: {
+        isUnreadForSeller: false,
+      },
+    });
 
-    //console.log(`✅ Marked messages as read for user ${userId}`);
     res.json({ success: true });
   } catch (error) {
     console.error("Error marking messages as read", error);

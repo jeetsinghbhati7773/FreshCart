@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { API_URL } from "../config";
 import { assets } from "../assets/assets";
 import { useAppContext } from "../context/AppContext";
 
@@ -18,11 +19,8 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        // const res = await axios.get(
-        //   `${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}`
-        // );
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/products/${productId}`
+          `${API_URL}/products/${productId}`
         );
         const data = res.data;
         setProduct(data);

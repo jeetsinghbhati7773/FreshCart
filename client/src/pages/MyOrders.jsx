@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance";
+import { API_URL } from "../config";
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -17,7 +18,7 @@ const MyOrders = () => {
     const fetchOrders = async () => {
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/orders/my`,
+          `${API_URL}/orders/my`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

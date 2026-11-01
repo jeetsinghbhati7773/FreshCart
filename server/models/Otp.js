@@ -1,23 +1,4 @@
-import mongoose from "mongoose";
+import prisma from "../config/prisma.js";
 
-const otpSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    lowercase: true,
-    trim: true,
-  },
-  otp: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-    expires: 300, // OTP expires in 5 minutes (300 seconds)
-  },
-});
-
-const Otp = mongoose.model("Otp", otpSchema);
-
+const Otp = prisma.otp;
 export default Otp;

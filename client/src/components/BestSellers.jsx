@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance";
+import { API_URL } from "../config";
 import toast from "react-hot-toast";
 import { useAppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
@@ -21,7 +22,7 @@ const BestSellers = () => {
     const fetchBestSellers = async () => {
       try {
         const res = await axios.get(
-          `https://hitman-grocery-backend.onrender.com/api/products/bestsellers`
+          `${API_URL}/products/bestsellers`
         );
 
         setBestSellers(res.data);

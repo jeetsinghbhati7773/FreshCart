@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import axios from "axios";
+import { API_URL } from "../config";
 import toast from "react-hot-toast";
 
 const Cart = () => {
@@ -40,7 +41,7 @@ const Cart = () => {
     if (paymentMethod === "COD") {
       try {
         await axios.post(
-          `https://hitman-grocery-backend.onrender.com/api/orders`,
+          `${API_URL}/orders`,
           {
             products: cartItems.map((item) => ({
               product: item._id,
@@ -85,7 +86,7 @@ const Cart = () => {
         }
 
         const res = await axios.post(
-          `https://hitman-grocery-backend.onrender.com/api/payment/razorpay`,
+          `${API_URL}/payment/razorpay`,
           { totalAmount: finalAmount },
           {
             headers: {
@@ -106,7 +107,7 @@ const Cart = () => {
           handler: async function (response) {
             try {
               await axios.post(
-                `https://hitman-grocery-backend.onrender.com/api/orders`,
+                `${API_URL}/orders`,
                 {
                   products: cartItems.map((item) => ({
                     product: item._id,
