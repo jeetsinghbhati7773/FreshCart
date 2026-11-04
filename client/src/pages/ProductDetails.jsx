@@ -117,9 +117,13 @@ const ProductDetail = () => {
           </div>
           <div className="border border-gray-300 rounded-lg overflow-hidden max-w-[500px]">
             <img
-              src={thumbnail}
+              src={thumbnail || assets.snacks_image}
               alt={product.name}
               className="w-full h-auto object-contain max-h-[500px]"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = assets.snacks_image;
+              }}
             />
           </div>
         </div>

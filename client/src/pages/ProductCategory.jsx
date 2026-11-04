@@ -16,6 +16,12 @@ const ProductCategory = () => {
     getCartQuantityById,
   } = useAppContext();
 
+  const [visibleCount, setVisibleCount] = React.useState(24);
+
+  React.useEffect(() => {
+    setVisibleCount(24);
+  }, [categoryName]);
+
   // Filter products by category (case-insensitive)
   const categoryProducts = products.filter(
     (product) => product.category.toLowerCase() === categoryName.toLowerCase()
@@ -46,28 +52,33 @@ const ProductCategory = () => {
       </h1>
 
       {categoryProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 justify-center">
-          {categoryProducts.map((product) => {
-            const count = getCartQuantityById(product._id);
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 justify-center">
+            {categoryProducts.slice(0, visibleCount).map((product) => {
+              const count = getCartQuantityById(product._id);
 
-            return (
-              <div
-                key={product._id}
-                className="bg-gradient-to-br from-blue-50 via-white to-green-50 border border-gray-200 rounded-xl p-4 w-full max-w-[260px] shadow-sm hover:shadow-md transition"
-              >
+              return (
                 <div
-                  className="group cursor-pointer flex items-center justify-center px-2"
-                  onClick={() => {
-                    navigate(`/product/${product._id}`);
-                    window.scrollTo(0, 0);
-                  }}
+                  key={product._id}
+                  className="bg-gradient-to-br from-blue-50 via-white to-green-50 border border-gray-200 rounded-xl p-4 w-full max-w-[260px] shadow-sm hover:shadow-md transition"
                 >
-                  <img
-                    className="group-hover:scale-105 transition max-w-26 md:max-w-36"
-                    src={product.image[0]}
-                    alt={product.name}
-                  />
-                </div>
+                  <div
+                    className="group cursor-pointer flex items-center justify-center px-2"
+                    onClick={() => {
+                      navigate(`/product/${product._id}`);
+                      window.scrollTo(0, 0);
+                    }}
+                  >
+                    <img
+                      className="group-hover:scale-105 transition max-w-26 md:max-w-36 h-[140px] object-contain"
+                      src={product.image && product.image[0] ? product.image[0] : assets.snacks_image}
+                      alt={product.name}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = assets.snacks_image;
+                      }}
+                    />
+                  </div>
 
                 <div className="text-gray-500/60 text-sm mt-4">
                   <p>{product.category}</p>
@@ -137,6 +148,21 @@ const ProductCategory = () => {
             );
           })}
         </div>
+
+        {visibleCount < categoryProducts.length && (
+          <div className="flex flex-col items-center justify-center mt-10 gap-2">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 24)}
+              className="px-8 py-3 bg-primary text-white font-medium rounded-lg shadow-sm hover:bg-primary-dull transition duration-200 cursor-pointer"
+            >
+              Load More Products
+            </button>
+            <p className="text-sm text-gray-500">
+              Showing {Math.min(visibleCount, categoryProducts.length)} of {categoryProducts.length} products
+            </p>
+          </div>
+        )}
+      </>
       ) : (
         <p className="text-center text-gray-500">
           No products found in this category.
