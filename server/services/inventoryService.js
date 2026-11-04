@@ -103,3 +103,4 @@ export async function adjustStock(productId, delta, client = prisma) {
     },
   });
 }
+

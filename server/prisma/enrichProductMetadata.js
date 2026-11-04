@@ -68,3 +68,4 @@ async function enrich() {
 enrich()
   .catch(console.error)
   .finally(() => prisma.$disconnect());
+

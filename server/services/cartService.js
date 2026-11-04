@@ -347,3 +347,4 @@ export function formatCartResponse(cart) {
     isValidForCheckout: items.length > 0 && warnings.length === 0,
   };
 }
+

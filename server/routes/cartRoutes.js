@@ -23,3 +23,4 @@ router.post("/sync", syncCart);
 router.post("/validate", validateCart);
 
 export default router;
+

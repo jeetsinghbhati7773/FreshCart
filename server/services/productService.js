@@ -278,3 +278,4 @@ export async function deleteProduct(id, soft = true) {
     where: { id },
   });
 }
+

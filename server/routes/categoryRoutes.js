@@ -11,3 +11,4 @@ router.get("/:name/products", getProductsByCategory);
 router.get("/:name", getProductsByCategory);
 
 export default router;
+
