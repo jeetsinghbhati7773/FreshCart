@@ -1,4 +1,6 @@
 import prisma from "../config/prisma.js";
+import { validateCartInventory, adjustStock } from "../services/inventoryService.js";
+import { clearCart } from "../services/cartService.js";
 
 export const createOrder = async (req, res) => {
   const { products, shippingAddress, paymentMethod } = req.body;
@@ -8,6 +10,18 @@ export const createOrder = async (req, res) => {
   }
 
   try {
+    // Validate inventory for all items
+    const inventoryCheck = await validateCartInventory(
+      products.map((item) => ({ productId: item.product, quantity: item.quantity }))
+    );
+
+    if (!inventoryCheck.isValid) {
+      return res.status(400).json({
+        message: "Some items in your order are out of stock or have insufficient quantity",
+        errors: inventoryCheck.errors,
+      });
+    }
+
     let subtotal = 0;
 
     for (const item of products) {
@@ -24,27 +38,44 @@ export const createOrder = async (req, res) => {
     const gst = Math.round(subtotal * 0.05);
     const totalAmount = subtotal + gst;
 
-    const newOrder = await prisma.order.create({
-      data: {
-        userId: req.user.id,
-        shippingAddress,
-        paymentMethod,
-        totalAmount,
-        orderItems: {
-          create: products.map((item) => ({
-            productId: item.product,
-            quantity: item.quantity,
-          })),
-        },
-      },
-      include: {
-        orderItems: {
-          include: {
-            product: true,
+    // Use transaction for order creation and inventory decrement
+    const newOrder = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.create({
+        data: {
+          userId: req.user.id,
+          shippingAddress,
+          paymentMethod,
+          totalAmount,
+          orderItems: {
+            create: products.map((item) => ({
+              productId: item.product,
+              quantity: item.quantity,
+            })),
           },
         },
-      },
+        include: {
+          orderItems: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      // Decrement stock for each item
+      for (const item of products) {
+        await adjustStock(item.product, -item.quantity, tx);
+      }
+
+      return order;
     });
+
+    // Clear backend cart if user had one
+    try {
+      await clearCart({ userId: req.user.id });
+    } catch (e) {
+      // Non-critical if user had no backend cart
+    }
 
     const formattedOrder = {
       ...newOrder,
@@ -59,7 +90,7 @@ export const createOrder = async (req, res) => {
       .json({ message: "Order placed successfully", order: formattedOrder });
   } catch (err) {
     console.error("Order creation failed:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 

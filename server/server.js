@@ -22,6 +22,9 @@ import chatRoutes from "./routes/chatRoutes.js";
 import otpRoutes from "./routes/otpRoutes.js";
 import { initSocket } from "./sockets/chatSocket.js";
 import subscribeRoute from "./routes/subscribe.js";
+import cartRoutes from "./routes/cartRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import docsRoutes from "./routes/docsRoutes.js";
 
 // Load .env variables
 dotenv.config();
@@ -65,6 +68,9 @@ app.get("/", (req, res) => res.send("API is working"));
 app.use("/api/users", userRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/docs", docsRoutes);
 app.use("/api/orders", OrderRoutes);
 app.use("/api/userAuth", authRoutes);
 app.use("/api/payment", paymentRoutes);

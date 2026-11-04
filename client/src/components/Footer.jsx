@@ -71,16 +71,26 @@ const Footer = () => {
       <div className="flex flex-col lg:flex-row justify-between gap-12 pt-8 pb-4 lg:pb-6 border-b border-gray-300">
         {/* Logo & Description */}
         <div className="lg:max-w-md text-left">
-          <img
-            src="hitman.grocery.logo.png"
-            alt="Hitman Grocery Logo"
-            className="w-32 sm:w-36 object-contain mb-6 cursor-pointer"
+          <div
+            className="flex items-center gap-2.5 mb-4 cursor-pointer"
             onClick={() => handleNavigation("/")}
-          />
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-green-600 to-emerald-400 flex items-center justify-center text-white shadow-md">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <div>
+              <span className="text-xl font-bold bg-gradient-to-r from-green-700 via-emerald-600 to-teal-700 bg-clip-text text-transparent">
+                ShopPilot
+              </span>
+              <span className="text-[10px] block font-semibold text-emerald-600 -mt-1 uppercase tracking-wider">
+                Autonomous Grocery Agent
+              </span>
+            </div>
+          </div>
           <p className="text-sm sm:text-base leading-relaxed text-gray-500">
-            We deliver fresh groceries and snacks straight to your door. Trusted
-            by thousands, we aim to make your shopping experience simple and
-            affordable.
+            ShopPilot delivers fresh authentic Indian groceries and snacks directly to your doorstep. Powered by intelligent autonomous shopping workflows.
           </p>
         </div>
 
@@ -143,8 +153,8 @@ const Footer = () => {
       </div>
 
       {/* Copyright */}
-      <p className="py-4 text-center text-xs sm:text-sm md:text-base text-gray-400">
-        © 2025 Hitman.Grocery All Rights Reserved.
+      <p className="py-4 text-center text-xs sm:text-sm text-gray-400">
+        © 2026 ShopPilot. All Rights Reserved. Built for PayPal AI Hackathon.
       </p>
     </footer>
   );

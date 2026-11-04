@@ -257,3 +257,4 @@ erDiagram
    - Run backend endpoints validation.
    - Run Vite production build (`npm run build`).
    - Validate full customer purchasing flow.
+

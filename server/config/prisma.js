@@ -53,6 +53,22 @@ const prisma = basePrisma.$extends({
         },
       },
     },
+    cart: {
+      _id: {
+        needs: { id: true },
+        compute(cart) {
+          return cart.id;
+        },
+      },
+    },
+    cartItem: {
+      _id: {
+        needs: { id: true },
+        compute(item) {
+          return item.id;
+        },
+      },
+    },
   },
 });
 

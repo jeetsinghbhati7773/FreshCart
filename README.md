@@ -1,69 +1,114 @@
-# Hitman Grocery - Full Stack Grocery Delivery App
+# 🛒 ShopPilot — AI-Powered Autonomous Grocery Shopping Agent
 
-**Project Duration:** June 2025 – July 2025  
-**Tech Stack:** Docker, React.js, Tailwind CSS, Node.js, Express.js, MongoDB, Razorpay, Cloudinary, Socket.io
-
----
-
-## Project Overview
-
-Hitman Grocery is a full-stack grocery delivery application designed to provide a seamless and secure shopping experience for users while enabling sellers to manage orders efficiently. The app includes user authentication, real-time updates, payment integration, and an in-app chat feature for direct communication between users and sellers.
+> **Built for PayPal AI Hackathon**  
+> *Evolving FreshCart into an autonomous, intelligent grocery procurement platform.*
 
 ---
 
-## Features
+## 🚀 Overview
 
-### User Features
-- **Secure Authentication:** User registration and login with JWT authentication and OTP verification.  
-- **Shop & Order:** Browse products by categories, view real-time bestseller rankings, and place orders with Razorpay or Cash on Delivery options.  
-- **Order Tracking:** Track order status in real-time from placement to delivery.  
-- **Chat Support:** Real-time chat with sellers for queries or support.
+**ShopPilot** is an autonomous grocery shopping platform engineered with a decoupled service architecture, PostgreSQL database, authoritative cart management, and interactive OpenAPI documentation.
 
-### Seller Features
-- **Order Management:** Receive and update orders in real-time, manage inventory and product listings.  
-- **Chat Support:** Communicate with users via an in-app chat system to provide better service.  
-
-### Admin & Technical Features
-- **Real-Time Updates:** Socket.io-powered real-time updates for bestseller lists, orders, and chat messages.  
-- **Media Management:** Cloudinary integration for storing and serving product images.  
-- **Containerization:** Dockerized application for consistent deployments across environments.  
+### 🌟 Step 1: Shopping Foundation (Complete)
+- **Active Database:** Local **PostgreSQL 16** managed via **Prisma ORM 6.4**.
+- **Authentic Indian Catalog:** **231 verified products** across 8 grocery categories with high-res images, dual English/Hindi naming, brands, units, and inventory tracking.
+- **Service Layer Architecture:** Decoupled business logic (`productService.js`, `cartService.js`, `inventoryService.js`) designed for direct AI agent integration.
+- **Authoritative Cart Engine:** Server-side cart with automatic GST (5%) calculation, savings tracker, stock checks, and guest/user session merging.
+- **Interactive OpenAPI 3.0 Documentation:** Live at `http://localhost:10000/api/docs`.
+- **Modern React 19 Frontend:** Vite 7, Tailwind CSS v3, category filter pills, price range filtering, real-time cart badge, and smooth SPA navigation.
 
 ---
 
-## Tech Stack & Tools
+## 📦 Product Catalog Breakdown (231 Total)
 
-- **Frontend:** React.js, Tailwind CSS  
-- **Backend:** Node.js, Express.js  
-- **Database:** MongoDB  
-- **Payments:** Razorpay integration with secure transaction handling  
-- **Real-Time Communication:** Socket.io for live updates and chat  
-- **Media Storage:** Cloudinary for product images  
-- **Deployment:** Docker for containerized development and deployment  
-
----
-
-## Installation & Setup
-
-1. **Clone the repository**
-```bash
-git clone <(https://github.com/meetmodi45/hitman.grocery)>
-cd hitman-grocery
-```
+| Category | Count | Sample Brands & Staples |
+|---|---|---|
+| 🍫 **Snacks & Chocolates** | 61 | Lay's, Kurkure, Bingo, Doritos, Cadbury, KitKat, Ferrero Rocher, Lindt |
+| 🌾 **Grains & Flours** | 27 | Sharbati Wheat, Basmati Rice, Sona Masoori, Ragi, Bajra, Jowar, Oats, Quinoa |
+| 🥤 **Drinks & Beverages** | 25 | Thums Up, Maaza, Red Bull, Sting, Rooh Afza, Tata Tea, Nescafe |
+| 🍎 **Fruits** | 25 | Kela (Banana), Anaar, Seb, Kesar Aam, Kiwi, Tender Coconut, Dragon Fruit |
+| 🥦 **Vegetables** | 25 | Aloo, Tamatar, Pyaz, Bhindi, Gobhi, Palak, Methi, Ginger, Garlic |
+| 🍜 **Instant Foods** | 24 | Maggi 2-Min, Double Masala, MTR Poha & Upma, Haldiram's RTE, iD Malabar Paratha |
+| 🥛 **Dairy & Eggs** | 22 | Amul Taaza Milk, Malai Paneer, Masti Dahi, Butter, Mother Dairy, Eggs |
+| 🍞 **Bakery & Breads** | 22 | English Oven Milk Bread, Modern White, Whole Wheat, Pav Bhaji Pav, Baguettes |
 
 ---
 
-2. Backend Setup
- ```bash
+## 🛠️ Tech Stack
+
+### Frontend (`client/`)
+- **React 19** + **Vite 7**
+- **React Router DOM v7** (SPA routing)
+- **Tailwind CSS v3**
+- **Axios** (interceptor-based auth tokens)
+- **React Context API** (`AppContext.jsx`)
+- **Socket.IO Client** (real-time seller chat)
+- **React Hot Toast** + **React Icons** + **Lucide React**
+
+### Backend (`server/`)
+- **Node.js (ES Modules)** + **Express v5**
+- **Prisma ORM 6.4** + **PostgreSQL**
+- **Decoupled Services:** `productService`, `cartService`, `inventoryService`
+- **Authentication:** JWT + bcrypt
+- **Payments:** Razorpay + Stripe (PayPal integration in Step 4)
+- **Cloud Services:** Cloudinary (image uploads), Nodemailer (OTP / notifications)
+- **Documentation:** Interactive OpenAPI 3.0 via Swagger UI at `/api/docs`
+
+---
+
+## 💻 Local Windows & PowerShell Setup
+
+### Prerequisites
+- Node.js v18+ (tested on Node.js v24)
+- PostgreSQL 14+ running locally on port 5432 with database `freshcart`
+
+### 1. Backend Setup
+```powershell
 cd server
 npm install
-cp .env.example .env
-npm start
+# Ensure .env has DATABASE_URL, JWT_SECRET, PORT=10000
+npx prisma db push
+npx prisma generate
+npm run dev
 ```
----
+*Backend runs on `http://localhost:10000`.*  
+*Interactive Swagger docs available at `http://localhost:10000/api/docs`.*
 
-3. Frontend Setup
-```bash
+### 2. Frontend Setup
+```powershell
 cd client
 npm install
-npm start
+npm run dev
 ```
+*Frontend runs on `http://localhost:5173`.*
+
+---
+
+## 🧪 Verification & Automated Testing
+
+Run the Step 1 automated test suite:
+```powershell
+cd server
+node test/step1Verify.js
+```
+
+### Test Coverage (100% Passing):
+- [x] Categories API (`/api/categories`)
+- [x] Full catalog listing (`/api/products`)
+- [x] Multi-keyword search (`?search=Maggi`)
+- [x] Department filtering (`?category=Dairy`)
+- [x] Price boundary filtering (`?minPrice=50&maxPrice=100`)
+- [x] Product details retrieval (`/api/products/:id`)
+- [x] Empty cart initialization (`/api/cart`)
+- [x] Cart addition & stock checks (`/api/cart/items`)
+- [x] Quantity adjustments & recalculations
+- [x] Pre-checkout inventory verification (`/api/cart/validate`)
+- [x] Item removal & cart clearance
+- [x] OpenAPI 3.0 specification (`/api/docs/openapi.json`)
+- [x] Vite production build (`npx vite build` — built cleanly in 13.8s)
+
+---
+
+## 🔒 Security
+- Database credentials and secrets are kept strictly in `.env` and excluded via `.gitignore`.
+- Template configuration available in `server/.env.example`.

@@ -81,9 +81,13 @@ const BestSellers = () => {
                   }}
                 >
                   <img
-                    className="group-hover:scale-105 transition max-w-[150px] sm:max-w-[120px] md:max-w-[140px]"
-                    src={product.image[0]}
+                    className="group-hover:scale-105 transition max-w-[150px] sm:max-w-[120px] md:max-w-[140px] h-32 object-contain"
+                    src={product.image?.[0] || assets.snacks_image}
                     alt={product.name}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = assets.snacks_image;
+                    }}
                   />
                 </div>
                 <div className="text-gray-500/60 text-sm">

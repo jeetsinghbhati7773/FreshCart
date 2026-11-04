@@ -1,166 +1,235 @@
+import * as productService from "../services/productService.js";
 import prisma from "../config/prisma.js";
 import cloudinary from "../utils/cloudinary.js";
 
+/**
+ * GET /api/products
+ * Retrieve products with filtering, searching, sorting, and pagination
+ */
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: "desc" },
+    const {
+      search,
+      category,
+      minPrice,
+      maxPrice,
+      brand,
+      inStockOnly,
+      sortBy = "newest",
+      page,
+      limit,
+    } = req.query;
+
+    const result = await productService.getAllProducts({
+      search,
+      category,
+      minPrice,
+      maxPrice,
+      brand,
+      inStockOnly,
+      sortBy,
+      page,
+      limit,
     });
-    res.status(200).json({ products });
+
+    res.status(200).json({
+      success: true,
+      products: result.products,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
+      },
+    });
   } catch (err) {
     console.error("Error fetching products:", err);
-    res
-      .status(500)
-      .json({ message: "Failed to fetch products", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch products",
+      error: err.message,
+    });
   }
 };
 
+/**
+ * GET /api/products/bestsellers
+ */
 export const getBestSellers = async (req, res) => {
   try {
-    // Group order items by productId and sum quantity
     const topOrdered = await prisma.orderItem.groupBy({
       by: ["productId"],
       _sum: { quantity: true },
       orderBy: {
-        _sum: {
-          quantity: "desc",
-        },
+        _sum: { quantity: "desc" },
       },
       take: 10,
     });
 
     const productIds = topOrdered.map((item) => item.productId);
 
-    // Get in-stock products from top ordered list
     let products = await prisma.product.findMany({
       where: {
         id: { in: productIds },
         inStock: true,
+        isActive: true,
       },
     });
 
-    // If fewer than 4 in-stock products, fill with other in-stock products
-    if (products.length < 4) {
+    if (products.length < 8) {
       const existingIds = products.map((p) => p.id);
-      const additionalProducts = await prisma.product.findMany({
+      const additional = await prisma.product.findMany({
         where: {
           inStock: true,
+          isActive: true,
           id: { notIn: existingIds },
         },
-        take: 4 - products.length,
+        take: 8 - products.length,
       });
-
-      products = [...products, ...additionalProducts];
+      products = [...products, ...additional];
     }
 
-    // Sort to match top order rankings if available
-    const sortedProducts = productIds
-      .map((id) => products.find((p) => p.id === id))
-      .filter(Boolean);
-
-    // Append any extra products needed to reach 4
-    for (const p of products) {
-      if (!sortedProducts.some((sp) => sp.id === p.id)) {
-        sortedProducts.push(p);
-      }
-    }
-
-    res.json(sortedProducts.slice(0, 4));
+    res.json(products.slice(0, 8));
   } catch (err) {
     console.error("Error fetching best sellers:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
+/**
+ * GET /api/products/:id
+ */
 export const getProductById = async (req, res) => {
   try {
-    const product = await prisma.product.findUnique({
-      where: { id: req.params.id },
-    });
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    const product = await productService.getProductById(req.params.id);
+    if (!product || !product.isActive) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
     res.json(product);
   } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
-export const createProduct = async (req, res) => {
+/**
+ * GET /api/categories
+ */
+export const getCategories = async (req, res) => {
   try {
-    const { name, description, category, price, offerPrice } = req.body;
-    const imageFiles = req.files;
+    const categories = await productService.getCategories();
+    res.status(200).json({ success: true, categories });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
 
-    if (!imageFiles || imageFiles.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Please upload at least one image" });
-    }
+/**
+ * GET /api/categories/:name/products
+ */
+export const getProductsByCategory = async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { page, limit, sortBy, minPrice, maxPrice } = req.query;
 
-    const uploadPromises = imageFiles.map(
-      (file) =>
-        new Promise((resolve, reject) => {
-          cloudinary.uploader
-            .upload_stream({ folder: "products" }, (error, result) => {
-              if (error) return reject(error);
-              resolve(result.secure_url);
-            })
-            .end(file.buffer);
-        })
-    );
+    const result = await productService.getProductsByCategory(name, {
+      page,
+      limit,
+      sortBy,
+      minPrice,
+      maxPrice,
+    });
 
-    const imageUrls = await Promise.all(uploadPromises);
-
-    const parsedDescription = Array.isArray(description)
-      ? description
-      : [description].filter(Boolean);
-
-    const newProduct = await prisma.product.create({
-      data: {
-        name,
-        description: parsedDescription,
-        category,
-        price: parseFloat(price),
-        offerPrice: parseFloat(offerPrice),
-        image: imageUrls,
+    res.status(200).json({
+      success: true,
+      category: name,
+      products: result.products,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        totalPages: result.totalPages,
       },
     });
-
-    res.status(201).json({ message: "Product created", product: newProduct });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 
+/**
+ * POST /api/products/add
+ */
+export const createProduct = async (req, res) => {
+  try {
+    const { name, description, category, price, offerPrice, brand, unit, stockQuantity } = req.body;
+    const imageFiles = req.files;
+
+    let imageUrls = [];
+
+    if (imageFiles && imageFiles.length > 0) {
+      const uploadPromises = imageFiles.map(
+        (file) =>
+          new Promise((resolve, reject) => {
+            cloudinary.uploader
+              .upload_stream({ folder: "products" }, (error, result) => {
+                if (error) return reject(error);
+                resolve(result.secure_url);
+              })
+              .end(file.buffer);
+          })
+      );
+      imageUrls = await Promise.all(uploadPromises);
+    } else if (req.body.image) {
+      imageUrls = Array.isArray(req.body.image) ? req.body.image : [req.body.image];
+    } else {
+      return res.status(400).json({ error: "Please upload or provide at least one image" });
+    }
+
+    const newProduct = await productService.createProduct({
+      name,
+      description,
+      category,
+      price,
+      offerPrice,
+      brand,
+      unit,
+      stockQuantity,
+      image: imageUrls,
+    });
+
+    res.status(201).json({ success: true, message: "Product created", product: newProduct });
+  } catch (error) {
+    console.error("Create Product Error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+/**
+ * PUT /api/products/:id
+ */
+export const updateProduct = async (req, res) => {
+  try {
+    const updated = await productService.updateProduct(req.params.id, req.body);
+    res.status(200).json({ success: true, message: "Product updated", product: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Failed to update product" });
+  }
+};
+
+/**
+ * DELETE /api/products/:id
+ */
 export const deleteProduct = async (req, res) => {
   try {
-    await prisma.product.delete({
-      where: { id: req.params.id },
-    });
-    res.status(200).json({ message: "Product deleted" });
+    await productService.deleteProduct(req.params.id, true); // soft delete
+    res.status(200).json({ success: true, message: "Product deactivated successfully" });
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to delete product", error: err.message });
+    res.status(500).json({ success: false, message: "Failed to delete product", error: err.message });
   }
 };
 
-export const updateProduct = async (req, res) => {
-  const { offerPrice, inStock } = req.body;
-  try {
-    const updateData = {};
-    if (offerPrice !== undefined) updateData.offerPrice = parseFloat(offerPrice);
-    if (inStock !== undefined) updateData.inStock = inStock;
-
-    const product = await prisma.product.update({
-      where: { id: req.params.id },
-      data: updateData,
-    });
-    res.status(200).json(product);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update product" });
-  }
-};
-
+/**
+ * GET /api/seller/products
+ */
 export const getSellerProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany({
