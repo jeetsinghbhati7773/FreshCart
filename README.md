@@ -17,6 +17,15 @@
 - **Interactive OpenAPI 3.0 Documentation:** Live at `http://localhost:10000/api/docs`.
 - **Modern React 19 Frontend:** Vite 7, Tailwind CSS v3, category filter pills, price range filtering, real-time cart badge, and smooth SPA navigation.
 
+### 🤖 Step 2: AI Shopping Intelligence (Complete)
+- **Python AI Microservice:** FastAPI + LangGraph state machine with persistent thread checkpointing.
+- **Structured Intent Extraction:** Converts natural-language requests into strongly typed Pydantic models with Indian currency normalization (₹, Rs, 3k).
+- **Targeted Clarification:** Identifies missing household parameters and asks friendly conversational follow-ups without guessing.
+- **Deterministic Quantity Bounds:** Rule-based household scaling (`QuantityService`) enforcing safe consumption limits and metric units.
+- **Zero-Hallucination Catalog Matching:** Queries live FreshCart PostgreSQL products via Express internal APIs, computing package multipliers (e.g. 7L milk -> 14x 500ml packs) and validating inventory.
+- **Decimal Budget Precision:** Accurate budget tracking, overrun detection, and intelligent cost reduction suggestions.
+- **Conversational UI:** Dedicated `/shopping-assistant` page with chat stream, intent summary badges, grocery plan breakdown, matched real products, and budget utilization tracker.
+
 ---
 
 ## 📦 Product Catalog Breakdown (231 Total)
@@ -62,7 +71,15 @@
 - Node.js v18+ (tested on Node.js v24)
 - PostgreSQL 14+ running locally on port 5432 with database `freshcart`
 
-### 1. Backend Setup
+### AI Microservice (`ai-service/`)
+- **Python 3.11** + **FastAPI** + **Uvicorn**
+- **LangGraph** (StateGraph with conditional edges and MemorySaver)
+- **LangChain** (Google Gemini & OpenAI provider abstractions)
+- **Pydantic v2** (Structured output models & BaseSettings)
+- **HTTPX** (Asynchronous HTTP client for Express APIs)
+- **Pytest** + **Pytest-Asyncio**
+
+### 1. Express Backend Setup
 ```powershell
 cd server
 npm install
@@ -74,7 +91,18 @@ npm run dev
 *Backend runs on `http://localhost:10000`.*  
 *Interactive Swagger docs available at `http://localhost:10000/api/docs`.*
 
-### 2. Frontend Setup
+### 2. AI Microservice Setup
+```powershell
+cd ai-service
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+# Copy .env.example to .env and configure LLM_PROVIDER (e.g. groq, gemini, or openai)
+uvicorn app.main:app --reload --port 8005
+```
+*AI service runs on `http://localhost:8005` (docs at `http://localhost:8005/docs`).*
+
+### 3. Frontend Setup
 ```powershell
 cd client
 npm install
@@ -105,7 +133,22 @@ node test/step1Verify.js
 - [x] Pre-checkout inventory verification (`/api/cart/validate`)
 - [x] Item removal & cart clearance
 - [x] OpenAPI 3.0 specification (`/api/docs/openapi.json`)
-- [x] Vite production build (`npx vite build` — built cleanly in 13.8s)
+### Step 2 Automated Test Coverage (100% Passing):
+```powershell
+cd ai-service
+pytest -v
+```
+- [x] Structured Intent Extraction (`ShoppingIntent` Pydantic model)
+- [x] Indian currency normalization (`₹3000`, `Rs. 1500`, `3k`, `3000 INR`)
+- [x] Missing parameter clarification triggering
+- [x] Grocery list planning with household scaling
+- [x] Deterministic quantity & unit sanity bounds clamping
+- [x] Real PostgreSQL catalog matching via Express HTTP API
+- [x] Package multiplier calculations (e.g. 7L milk -> 14x 500ml packs)
+- [x] Stock shortage detection and notifications
+- [x] Decimal arithmetic budget validation & savings calculation
+- [x] Budget overrun identification and optional item reduction recommendations
+- [x] Single-turn and multi-turn conversational state preservation
 
 ---
 

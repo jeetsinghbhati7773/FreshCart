@@ -19,6 +19,7 @@ import MyOrders from "./pages/MyOrders";
 import UserChat from "./components/UserChat";
 import PaymentMethods from "./pages/PaymentMethods";
 import NotFound from "./pages/NotFound";
+import ShoppingAssistant from "./components/ai/ShoppingAssistant";
 const App = () => {
   const { showUserLogin, showAddressModal, user, isSeller } = useAppContext();
   const isSellerPath = useLocation().pathname.includes("seller");
@@ -41,6 +42,7 @@ const App = () => {
           <Route path="/products/:categoryName" element={<ProductCategory />} />
           <Route path="/product/:productId" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/shopping-assistant" element={<ShoppingAssistant />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/payment-methods" element={<PaymentMethods />} />
           <Route path="/seller-login" element={<SellerLogin />} />

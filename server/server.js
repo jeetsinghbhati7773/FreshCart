@@ -25,6 +25,8 @@ import subscribeRoute from "./routes/subscribe.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
+import internalRoutes from "./routes/internalRoutes.js";
+import aiProxyRoutes from "./routes/aiProxyRoutes.js";
 
 // Load .env variables
 dotenv.config();
@@ -71,6 +73,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/docs", docsRoutes);
+app.use("/api/internal/ai", internalRoutes);
+app.use("/api/ai", aiProxyRoutes);
 app.use("/api/orders", OrderRoutes);
 app.use("/api/userAuth", authRoutes);
 app.use("/api/payment", paymentRoutes);
