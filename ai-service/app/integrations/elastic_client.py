@@ -65,3 +65,4 @@ class ElasticClient(ProductProvider):
 
 
 elastic_client = ElasticClient()
+

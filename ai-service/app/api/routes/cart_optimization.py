@@ -129,3 +129,4 @@ async def find_alternatives_endpoint(payload: FindAlternativesRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Alternative search failed: {str(e)}",
         )
+

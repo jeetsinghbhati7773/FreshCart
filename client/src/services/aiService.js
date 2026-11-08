@@ -20,7 +20,7 @@ export async function sendChatMessage(message, conversationId) {
       message,
       conversation_id: conversationId,
     },
-    { headers }
+    { headers, timeout: 120000 }
   );
 
   return response.data;

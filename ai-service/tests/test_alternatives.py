@@ -135,3 +135,4 @@ def test_reject_out_of_stock_candidate():
     )
 
     assert alt is None
+

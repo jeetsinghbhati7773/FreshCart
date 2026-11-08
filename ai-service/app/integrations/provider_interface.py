@@ -22,3 +22,4 @@ class ProductProvider(ABC):
     async def get_by_id(self, product_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve exact product by identifier."""
         pass
+

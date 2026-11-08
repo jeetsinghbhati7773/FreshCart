@@ -43,7 +43,7 @@ router.post("/chat", optionalAuth, async (req, res) => {
     };
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000);
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
 
     const aiResponse = await fetch(`${AI_SERVICE_URL}/api/ai/chat`, {
       method: "POST",

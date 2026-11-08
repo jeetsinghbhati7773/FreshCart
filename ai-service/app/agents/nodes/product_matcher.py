@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any, Dict, List
 
@@ -11,19 +12,20 @@ logger = logging.getLogger(__name__)
 async def product_matcher_node(state: AgentState) -> Dict[str, Any]:
     """
     LangGraph node: Connects grocery items to real FreshCart products
-    retrieved from Express backend APIs.
+    retrieved concurrently from Express backend APIs.
     """
     raw_items = state.get("grocery_items") or []
     grocery_items = [GroceryItem(**item) for item in raw_items]
 
-    matched: List[MatchedProduct] = []
+    # Concurrent parallel matching for instant resolution
+    matches = await asyncio.gather(
+        *[catalog_service.match_item_to_product(item) for item in grocery_items],
+        return_exceptions=True
+    )
 
-    for item in grocery_items:
-        match = await catalog_service.match_item_to_product(item)
-        if match:
-            matched.append(match)
-        else:
-            logger.info(f"Could not find matching FreshCart product for item '{item.name}'")
+    matched: List[MatchedProduct] = [
+        m for m in matches if isinstance(m, MatchedProduct) and m is not None
+    ]
 
     return {
         "matched_products": [m.model_dump(mode="json") for m in matched],

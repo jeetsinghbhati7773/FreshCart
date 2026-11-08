@@ -192,3 +192,4 @@ class ProductScorer:
                 "stock": round(s_stock, 3),
             },
         }
+

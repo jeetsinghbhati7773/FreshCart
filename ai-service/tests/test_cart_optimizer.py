@@ -115,3 +115,4 @@ def test_optimize_selection_budget_swap():
     assert chosen.subtotal == Decimal("180")
     assert chosen.is_substitution is True
     assert "saved" in chosen.selection_reason.lower()
+

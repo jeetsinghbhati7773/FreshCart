@@ -99,3 +99,4 @@ def test_package_calculation_stock_limitation():
     assert res.fulfillable_packages == 4
     assert res.shortage_packages == 6
     assert res.subtotal == Decimal("600")  # 4 * 150
+

@@ -65,3 +65,4 @@ class Channel3Client(ProductProvider):
 
 
 channel3_client = Channel3Client()
+

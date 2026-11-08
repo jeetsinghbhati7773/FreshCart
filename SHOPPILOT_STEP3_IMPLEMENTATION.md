@@ -114,3 +114,4 @@ FastAPI AI Microservice (Port 8005)
 ### 4.3 End-to-End Live API Verification
 - `POST /api/ai/optimize-cart`: Successfully optimized 4 grocery requirements within ₹1,000 budget, returning ₹784.00 total with ₹216.00 remaining budget and classified alternatives for each item.
 - `POST /api/cart/batch-add`: Successfully transferred proposed items into the customer's FreshCart cart session.
+

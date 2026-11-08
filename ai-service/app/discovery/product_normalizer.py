@@ -144,3 +144,4 @@ class ProductNormalizer:
             base_unit, multiplier = cls.UNIT_CONVERSIONS[unit_lower]
             return quantity * multiplier, base_unit
         return quantity, unit_lower
+

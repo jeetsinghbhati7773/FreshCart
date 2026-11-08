@@ -75,3 +75,4 @@ def test_product_scorer():
     assert score_result["scores"]["category"] == 1.0
     assert score_result["scores"]["brand"] == 1.0
     assert score_result["packages_needed"] == 1
+

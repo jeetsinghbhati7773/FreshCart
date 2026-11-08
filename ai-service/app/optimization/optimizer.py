@@ -1,3 +1,4 @@
+import asyncio
 from decimal import Decimal
 import logging
 from typing import Any, Dict, List, Optional
@@ -35,14 +36,13 @@ class CartOptimizerService:
         """
         candidate_map: Dict[str, List[Dict[str, Any]]] = {}
 
-        # 1. Multi-candidate discovery for each grocery item
-        for req in request.grocery_items:
+        # 1. Multi-candidate discovery for all grocery items in parallel
+        async def fetch_item_candidates(req):
             req_name = req.get("name", "")
             req_qty = float(req.get("estimated_quantity", 1.0))
             req_unit = req.get("unit", "pcs")
             category = req.get("category")
-
-            candidates = await product_discovery_engine.discover_candidates(
+            cands = await product_discovery_engine.discover_candidates(
                 requirement_name=req_name,
                 estimated_quantity=req_qty,
                 unit=req_unit,
@@ -50,7 +50,11 @@ class CartOptimizerService:
                 preferred_brands=request.preferred_brands,
                 max_candidates=5,
             )
-            candidate_map[req_name] = candidates
+            return req_name, cands
+
+        results = await asyncio.gather(*[fetch_item_candidates(r) for r in request.grocery_items])
+        for name, cands in results:
+            candidate_map[name] = cands
 
         # 2. Budget-constrained optimization
         selected_items, unresolved, recommendations = BudgetOptimizer.optimize_selection(
@@ -224,3 +228,4 @@ class CartOptimizerService:
 
 
 cart_optimizer_service = CartOptimizerService()
+

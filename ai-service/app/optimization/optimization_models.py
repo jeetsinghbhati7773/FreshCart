@@ -73,3 +73,4 @@ class SwapItemRequest(BaseModel):
     current_cart: OptimizedCart
     target_product_id: str
     replacement_product_id: str
+
