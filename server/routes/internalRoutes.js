@@ -1,6 +1,8 @@
 import express from "express";
 import internalAuth from "../middlewares/internalAuth.js";
 import { getAllProducts, getProductById } from "../services/productService.js";
+import { validateCartInventory } from "../services/inventoryService.js";
+import prisma from "../config/prisma.js";
 
 const router = express.Router();
 
@@ -59,6 +61,72 @@ router.get("/products/:id", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal product lookup failed",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/internal/ai/products/batch
+ * Bulk fetch product details for multiple IDs
+ */
+router.post("/products/batch", async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "productIds array is required",
+      });
+    }
+
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+        isActive: true,
+      },
+    });
+
+    return res.json({
+      success: true,
+      count: products.length,
+      products,
+    });
+  } catch (error) {
+    console.error("Batch product lookup error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Batch lookup failed",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/internal/ai/inventory/validate
+ * Bulk validate stock availability for proposed items
+ */
+router.post("/inventory/validate", async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "items array with {productId, quantity} is required",
+      });
+    }
+
+    const validation = await validateCartInventory(items);
+    return res.json({
+      success: true,
+      isValid: validation.isValid,
+      errors: validation.errors,
+    });
+  } catch (error) {
+    console.error("Inventory validation error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Inventory validation failed",
       error: error.message,
     });
   }

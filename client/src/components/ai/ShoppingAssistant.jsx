@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Bot, Sparkles, RotateCcw, AlertCircle, ShoppingBag, ShieldCheck } from "lucide-react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { Bot, Sparkles, RotateCcw, AlertCircle, ShoppingBag, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import toast from "react-hot-toast";
 
 import ChatMessage from "./ChatMessage";
@@ -8,7 +8,10 @@ import IntentSummary from "./IntentSummary";
 import GroceryPlan from "./GroceryPlan";
 import ProductRecommendation from "./ProductRecommendation";
 import BudgetSummary from "./BudgetSummary";
-import { sendChatMessage } from "../../services/aiService";
+import OptimizedCart from "./OptimizedCart";
+import OptimizationSummary from "./OptimizationSummary";
+import { sendChatMessage, swapCartItem, batchAddToCart } from "../../services/aiService";
+import { AppContext } from "../../context/AppContext";
 
 const getConversationId = () => {
   let cid = sessionStorage.getItem("shoppilot_ai_cid");
@@ -20,6 +23,7 @@ const getConversationId = () => {
 };
 
 const ShoppingAssistant = () => {
+  const { refreshBackendCart } = useContext(AppContext);
   const [conversationId, setConversationId] = useState(getConversationId);
   const [messages, setMessages] = useState([
     {
@@ -38,6 +42,13 @@ const ShoppingAssistant = () => {
   const [estimatedTotal, setEstimatedTotal] = useState(0);
   const [budgetStatus, setBudgetStatus] = useState("not_calculated");
   const [budgetDifference, setBudgetDifference] = useState(0);
+
+  // Step 3 Optimization State
+  const [optimizedCart, setOptimizedCart] = useState(null);
+  const [isSwapping, setIsSwapping] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [addedSuccess, setAddedSuccess] = useState(false);
+  const [showDetailedSteps, setShowDetailedSteps] = useState(false);
 
   const chatBottomRef = useRef(null);
 
@@ -67,6 +78,7 @@ const ShoppingAssistant = () => {
         if (response.estimated_total !== undefined) setEstimatedTotal(response.estimated_total);
         if (response.budget_status) setBudgetStatus(response.budget_status);
         if (response.budget_difference !== undefined) setBudgetDifference(response.budget_difference);
+        if (response.optimized_cart) setOptimizedCart(response.optimized_cart);
 
         // Assistant reply message
         const replyText =
@@ -106,6 +118,48 @@ const ShoppingAssistant = () => {
     }
   };
 
+  const handleSwapItem = async (targetProductId, replacementProductId) => {
+    if (!optimizedCart) return;
+    setIsSwapping(true);
+    try {
+      const res = await swapCartItem(optimizedCart, targetProductId, replacementProductId);
+      if (res && res.success && res.cart) {
+        setOptimizedCart(res.cart);
+        toast.success("Product substituted successfully!");
+      }
+    } catch (err) {
+      console.error("Swap Error:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to swap product");
+    } finally {
+      setIsSwapping(false);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    if (!optimizedCart || !optimizedCart.items || optimizedCart.items.length === 0) return;
+    setIsAddingToCart(true);
+    try {
+      const itemsToAdd = optimizedCart.items.map((it) => ({
+        productId: it.product_id,
+        quantity: it.package_count || 1,
+      }));
+      const res = await batchAddToCart(itemsToAdd, false);
+      if (res && res.success) {
+        setAddedSuccess(true);
+        toast.success(`Transferred ${res.addedCount} items to your FreshCart cart!`);
+        if (refreshBackendCart) {
+          await refreshBackendCart();
+        }
+        setTimeout(() => setAddedSuccess(false), 4000);
+      }
+    } catch (err) {
+      console.error("Batch Add Error:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to add items to cart");
+    } finally {
+      setIsAddingToCart(false);
+    }
+  };
+
   const handleResetConversation = () => {
     const newCid = "chat_" + Math.random().toString(36).substring(2, 9) + "_" + Date.now();
     sessionStorage.setItem("shoppilot_ai_cid", newCid);
@@ -123,11 +177,15 @@ const ShoppingAssistant = () => {
     setEstimatedTotal(0);
     setBudgetStatus("not_calculated");
     setBudgetDifference(0);
+    setOptimizedCart(null);
+    setAddedSuccess(false);
     setError(null);
     toast.success("Started fresh shopping session");
   };
 
-  const hasIntelligenceData = intent || groceryPlan.length > 0 || matchedProducts.length > 0;
+  const hasIntelligenceData = Boolean(
+    optimizedCart || intent || groceryPlan.length > 0 || matchedProducts.length > 0
+  );
 
   return (
     <div className="pt-24 pb-12 min-h-screen">
@@ -143,7 +201,7 @@ const ShoppingAssistant = () => {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Natural-language grocery planning backed by real FreshCart catalog prices and inventory.
+            Autonomous grocery discovery & smart cart optimization backed by real FreshCart catalog prices and inventory.
           </p>
         </div>
 
@@ -211,25 +269,66 @@ const ShoppingAssistant = () => {
         <div className="lg:col-span-7">
           {hasIntelligenceData ? (
             <div>
-              {/* Intent Summary */}
-              {intent && <IntentSummary intent={intent} />}
+              {/* Step 3: Smart Cart Optimization (Summary + Interactive Table) */}
+              {optimizedCart ? (
+                <>
+                  <OptimizationSummary
+                    breakdown={optimizedCart.breakdown}
+                    metrics={optimizedCart.metrics}
+                    recommendations={optimizedCart.recommendations}
+                    onAddToCart={handleAddToCart}
+                    isAddingToCart={isAddingToCart}
+                    addedSuccess={addedSuccess}
+                  />
 
-              {/* Budget Summary */}
-              {(estimatedTotal > 0 || intent?.budget) && (
-                <BudgetSummary
-                  total={estimatedTotal}
-                  budget={intent?.budget}
-                  status={budgetStatus}
-                  difference={budgetDifference}
-                />
-              )}
+                  <OptimizedCart
+                    cart={optimizedCart}
+                    onSwapItem={handleSwapItem}
+                    isSwapping={isSwapping}
+                  />
 
-              {/* Grocery Plan */}
-              {groceryPlan.length > 0 && <GroceryPlan items={groceryPlan} />}
+                  {/* Collapsible Requirements and Intent view */}
+                  <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm mb-4">
+                    <button
+                      onClick={() => setShowDetailedSteps(!showDetailedSteps)}
+                      className="w-full flex items-center justify-between text-xs font-bold text-gray-700 hover:text-emerald-700 transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-600" />
+                        {showDetailedSteps ? "Hide" : "View"} Underlying Household Requirements & Intent
+                      </span>
+                      {showDetailedSteps ? (
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                      )}
+                    </button>
 
-              {/* Matched Products */}
-              {matchedProducts.length > 0 && (
-                <ProductRecommendation products={matchedProducts} />
+                    {showDetailedSteps && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
+                        {intent && <IntentSummary intent={intent} />}
+                        {groceryPlan.length > 0 && <GroceryPlan items={groceryPlan} />}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                /* Step 2 Direct Plan Fallback */
+                <>
+                  {intent && <IntentSummary intent={intent} />}
+                  {(estimatedTotal > 0 || intent?.budget) && (
+                    <BudgetSummary
+                      total={estimatedTotal}
+                      budget={intent?.budget}
+                      status={budgetStatus}
+                      difference={budgetDifference}
+                    />
+                  )}
+                  {groceryPlan.length > 0 && <GroceryPlan items={groceryPlan} />}
+                  {matchedProducts.length > 0 && (
+                    <ProductRecommendation products={matchedProducts} />
+                  )}
+                </>
               )}
             </div>
           ) : (

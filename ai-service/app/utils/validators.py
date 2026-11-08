@@ -107,20 +107,10 @@ def parse_indian_budget(text: str) -> Optional[Decimal]:
             pass
 
     # 4. Check for context words: budget 2000, within 3000, have 1500
-    context_m = re.search(r'(?:budget|within|under|have|around|approx|limit)(?:\s*(?:of|is|to))?\s*(?:₹|rs\.?|inr)?\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)', cleaned)
+    context_m = re.search(r'(?:budget|within|under|have|around|approx|limit|max|up to)(?:\s*(?:of|is|to))?\s*(?:₹|rs\.?|inr)?\s*(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)', cleaned)
     if context_m:
         try:
             return Decimal(context_m.group(1).replace(',', ''))
-        except (ValueError, InvalidOperation):
-            pass
-
-    # 5. Fallback: generic standalone numbers with commas/decimals
-    num_match = re.search(r'(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)', cleaned)
-    if num_match:
-        try:
-            amount = Decimal(num_match.group(1).replace(',', ''))
-            if amount > 0:
-                return amount
         except (ValueError, InvalidOperation):
             pass
 

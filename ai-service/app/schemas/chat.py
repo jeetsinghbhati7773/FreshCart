@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 from app.schemas.intent import ShoppingIntent
 from app.schemas.grocery_plan import GroceryItem, MatchedProduct
+from app.optimization.optimization_models import OptimizedCart
 
 
 class ChatRequest(BaseModel):
@@ -27,5 +28,6 @@ class ChatResponse(BaseModel):
     estimated_total: Decimal = Field(default=Decimal("0.0"))
     budget_status: Literal["within_budget", "exceeded", "not_calculated"] = "not_calculated"
     budget_difference: Decimal = Field(default=Decimal("0.0"))
+    optimized_cart: Optional[OptimizedCart] = None
     assistant_message: str
 

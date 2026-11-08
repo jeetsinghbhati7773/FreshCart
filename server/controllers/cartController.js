@@ -231,3 +231,56 @@ export async function validateCart(req, res) {
   }
 }
 
+/**
+ * POST /api/cart/batch-add
+ * Bulk add multiple items (e.g. from ShopPilot AI proposed cart) into user's FreshCart cart
+ */
+export async function batchAddItems(req, res) {
+  try {
+    const { userId, sessionId } = getCartIdentifiers(req);
+    const { items, clearFirst = false } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: "items array is required" });
+    }
+
+    if (clearFirst) {
+      await cartService.clearCartItems({ userId, sessionId });
+    }
+
+    const added = [];
+    const errors = [];
+
+    for (const it of items) {
+      const pId = it.productId || it.product_id;
+      const qty = parseInt(it.quantity || it.package_count || 1, 10);
+      if (!pId) continue;
+
+      try {
+        await cartService.addItemToCart({
+          userId,
+          sessionId,
+          productId: pId,
+          quantity: qty,
+        });
+        added.push({ productId: pId, quantity: qty });
+      } catch (err) {
+        errors.push({ productId: pId, error: err.message });
+      }
+    }
+
+    const finalCart = await cartService.getOrCreateCart({ userId, sessionId });
+    return res.status(200).json({
+      success: true,
+      message: `Successfully added ${added.length} items to cart`,
+      addedCount: added.length,
+      errors: errors.length > 0 ? errors : undefined,
+      cart: finalCart,
+    });
+  } catch (error) {
+    console.error("Batch add items error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+

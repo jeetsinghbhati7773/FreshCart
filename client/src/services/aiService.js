@@ -59,3 +59,56 @@ export async function getAiHealth() {
   return response.data;
 }
 
+/**
+ * Request smart cart optimization for grocery requirements
+ * @param {object} params - { grocery_items, budget, dietary_preferences, preferred_brands, conversation_id }
+ */
+export async function optimizeCart(params) {
+  const token = localStorage.getItem("token");
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await axios.post(`${API_URL}/ai/optimize-cart`, params, { headers });
+  return response.data;
+}
+
+/**
+ * Swap a product with an alternative in the current optimized cart
+ */
+export async function swapCartItem(currentCart, targetProductId, replacementProductId) {
+  const token = localStorage.getItem("token");
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await axios.post(
+    `${API_URL}/ai/reoptimize-cart`,
+    {
+      current_cart: currentCart,
+      target_product_id: targetProductId,
+      replacement_product_id: replacementProductId,
+      conversation_id: currentCart.conversation_id,
+    },
+    { headers }
+  );
+  return response.data;
+}
+
+/**
+ * 1-Click transfer: Add all optimized items into FreshCart cart
+ * @param {Array<{productId: string, quantity: number}>} items
+ * @param {boolean} clearFirst
+ */
+export async function batchAddToCart(items, clearFirst = false) {
+  const token = localStorage.getItem("token");
+  const headers = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await axios.post(
+    `${API_URL}/cart/batch-add`,
+    { items, clearFirst },
+    { headers }
+  );
+  return response.data;
+}
+
+

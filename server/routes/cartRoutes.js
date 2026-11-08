@@ -7,6 +7,7 @@ import {
   clearCart,
   syncCart,
   validateCart,
+  batchAddItems,
 } from "../controllers/cartController.js";
 import optionalAuth from "../middlewares/optionalAuth.js";
 
@@ -21,6 +22,7 @@ router.delete("/items/:productId", removeItem);
 router.delete("/", clearCart);
 router.post("/sync", syncCart);
 router.post("/validate", validateCart);
+router.post("/batch-add", batchAddItems);
 
 export default router;
 

@@ -26,6 +26,16 @@
 - **Decimal Budget Precision:** Accurate budget tracking, overrun detection, and intelligent cost reduction suggestions.
 - **Conversational UI:** Dedicated `/shopping-assistant` page with chat stream, intent summary badges, grocery plan breakdown, matched real products, and budget utilization tracker.
 
+### ⚡ Step 3: Product Discovery & Smart Cart Optimization (Complete)
+- **Autonomous Product Discovery Engine:** Multi-query expansion, singular/plural stemming, parenthetical normalization, and multi-criteria candidate scoring:
+  $$\text{Score} = 0.35 \times S_{\text{semantic}} + 0.20 \times S_{\text{category}} + 0.15 \times S_{\text{package}} + 0.10 \times S_{\text{brand}} + 0.10 \times S_{\text{price}} + 0.10 \times S_{\text{stock}}$$
+- **Package Size & Quantity Math:** Integer package multipliers ($\lceil \text{req} / \text{pkg\_size} \rceil$), supplied vs required calculation, excess percentage tracking, and stock shortage warnings.
+- **Alternative Recommendation Engine:** Automated detection and classification of alternatives (`exact`, `similar`, `budget_friendly`, `premium`, `unresolved`) with category compatibility and dietary constraint enforcement.
+- **Smart Budget Optimizer:** Constrained integer optimization maximizing essential fulfillment, swapping in budget-friendly alternatives when costs exceed target budget, and computing detailed financial breakdowns.
+- **1-Click Cart Transfer:** Direct batch addition (`POST /api/cart/batch-add`) transferring proposed items directly into the user's FreshCart cart.
+- **Interactive UI Components:** `OptimizedCart.jsx` table, `AlternativeModal.jsx` for 1-click product swapping, and `OptimizationSummary.jsx` with savings breakdown.
+- **31 Automated Tests:** 100% test pass rate across unit conversion, candidate scoring, package math, alternatives classification, and budget optimization.
+
 ---
 
 ## 📦 Product Catalog Breakdown (231 Total)

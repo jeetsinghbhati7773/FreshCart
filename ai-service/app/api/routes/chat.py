@@ -5,6 +5,8 @@ from app.agents.graph import shopping_graph
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.schemas.intent import ShoppingIntent
 from app.schemas.grocery_plan import GroceryItem, MatchedProduct
+from app.optimization.optimization_models import OptimizationRequest
+from app.optimization.optimizer import cart_optimizer_service
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +74,21 @@ async def chat_endpoint(payload: ChatRequest):
         raw_matches = result.get("matched_products") or []
         matched_products = [MatchedProduct(**m) for m in raw_matches]
 
+        # Step 3: Run Smart Cart Optimization on the generated grocery items
+        optimized_cart = None
+        if grocery_items:
+            try:
+                opt_req = OptimizationRequest(
+                    conversation_id=conversation_id,
+                    grocery_items=[i.model_dump(mode="json") for i in grocery_items],
+                    budget=intent_obj.budget if intent_obj else None,
+                    dietary_preferences=intent_obj.dietary_preferences if intent_obj else [],
+                    preferred_brands=intent_obj.preferred_brands if intent_obj else [],
+                )
+                optimized_cart = await cart_optimizer_service.optimize_cart(opt_req)
+            except Exception as opt_err:
+                logger.warning(f"Optional cart optimization error in chat: {opt_err}")
+
         return ChatResponse(
             conversation_id=conversation_id,
             status="clarification_needed" if result.get("status") == "clarification_needed" else "plan_generated",
@@ -82,6 +99,7 @@ async def chat_endpoint(payload: ChatRequest):
             estimated_total=Decimal(str(result.get("estimated_total", 0.0))),
             budget_status=result.get("budget_status", "not_calculated"),
             budget_difference=Decimal(str(result.get("budget_difference", 0.0))),
+            optimized_cart=optimized_cart,
             assistant_message=final_msg,
         )
 

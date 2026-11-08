@@ -14,6 +14,7 @@ class AgentState(TypedDict):
     budget_status: str
     budget_difference: float
     suggestions: List[str]
+    optimized_cart: Optional[Dict[str, Any]]
     final_response: str
     status: str
 
