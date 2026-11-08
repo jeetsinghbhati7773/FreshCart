@@ -32,7 +32,8 @@
 - **Package Size & Quantity Math:** Integer package multipliers ($\lceil \text{req} / \text{pkg\_size} \rceil$), supplied vs required calculation, excess percentage tracking, and stock shortage warnings.
 - **Alternative Recommendation Engine:** Automated detection and classification of alternatives (`exact`, `similar`, `budget_friendly`, `premium`, `unresolved`) with category compatibility and dietary constraint enforcement.
 - **Smart Budget Optimizer:** Constrained integer optimization maximizing essential fulfillment, swapping in budget-friendly alternatives when costs exceed target budget, and computing detailed financial breakdowns.
-- **1-Click Cart Transfer:** Direct batch addition (`POST /api/cart/batch-add`) transferring proposed items directly into the user's FreshCart cart.
+- **1-Click Cart Transfer:** Direct batch addition (`POST /api/cart/batch-add`) transferring proposed items directly into the user's FreshCart cart session.
+- **Floating Bottom-Right Chatbot Widget:** Accessible anywhere across the store via an interactive floating widget (`AiChatWidget.jsx`) with quick-prompt chips, inline cart preview, and 1-click checkout transfer.
 - **Interactive UI Components:** `OptimizedCart.jsx` table, `AlternativeModal.jsx` for 1-click product swapping, and `OptimizationSummary.jsx` with savings breakdown.
 - **31 Automated Tests:** 100% test pass rate across unit conversion, candidate scoring, package math, alternatives classification, and budget optimization.
 
@@ -143,25 +144,37 @@ node test/step1Verify.js
 - [x] Pre-checkout inventory verification (`/api/cart/validate`)
 - [x] Item removal & cart clearance
 - [x] OpenAPI 3.0 specification (`/api/docs/openapi.json`)
-### Step 2 Automated Test Coverage (100% Passing):
+### AI Microservice Automated Test Coverage (31 Passed in 1.92s):
 ```powershell
 cd ai-service
 pytest -v
 ```
-- [x] Structured Intent Extraction (`ShoppingIntent` Pydantic model)
-- [x] Indian currency normalization (`₹3000`, `Rs. 1500`, `3k`, `3000 INR`)
-- [x] Missing parameter clarification triggering
-- [x] Grocery list planning with household scaling
-- [x] Deterministic quantity & unit sanity bounds clamping
-- [x] Real PostgreSQL catalog matching via Express HTTP API
-- [x] Package multiplier calculations (e.g. 7L milk -> 14x 500ml packs)
-- [x] Stock shortage detection and notifications
-- [x] Decimal arithmetic budget validation & savings calculation
-- [x] Budget overrun identification and optional item reduction recommendations
-- [x] Single-turn and multi-turn conversational state preservation
+- [x] **Discovery & Text Normalization:** Query cleaning (`Curd (Plain Yogurt)` $\rightarrow$ `Curd`), singularization (`Potatoes` $\rightarrow$ `potato`), package parsing (`1kg`, `500g`, `1L`, `500ml`).
+- [x] **Candidate Scoring Formula:** Semantic, category, package suitability, brand, and stock composite rating.
+- [x] **Package Size & Excess Math:** Exact matches, fractional requirements, metric unit conversions, and stock limitations.
+- [x] **Alternative Classification:** Exact matches, budget-friendly savings, premium upgrades, category compatibility, and out-of-stock exclusions.
+- [x] **Budget Optimizer:** Real-time MRP/savings calculations, automated budget substitution, and overage detection.
+- [x] **Intent Extraction & Household Scaling:** Pydantic model validation, currency normalization (`₹`, `Rs`, `3k`), and consumption bounds.
+- [x] **Conversational Memory:** Stateful multi-turn clarification and budget updates.
+
+---
+
+## 📡 API Endpoints Reference
+
+### AI Proxy & Optimization APIs (Port 10000 / 8005)
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/ai/health` | `GET` | Health check proxy for FastAPI microservice |
+| `/api/ai/chat` | `POST` | Conversational shopping concierge with LangGraph + Cart Optimizer |
+| `/api/ai/optimize-cart` | `POST` | Discovers products, calculates packages, and optimizes cart under budget |
+| `/api/ai/reoptimize-cart` | `POST` | Swaps product with alternative and recalculates totals dynamically |
+| `/api/ai/find-alternatives`| `POST` | Classifies in-stock replacements (exact, budget, premium, similar) |
+| `/api/cart/batch-add` | `POST` | 1-Click transfer adding proposed items into user's FreshCart cart |
+| `/api/internal/ai/products/batch` | `POST` | Bulk lookup of multiple products by ID array |
+| `/api/internal/ai/inventory/validate` | `POST` | Bulk stock and live price validation |
 
 ---
 
 ## 🔒 Security
 - Database credentials and secrets are kept strictly in `.env` and excluded via `.gitignore`.
-- Template configuration available in `server/.env.example`.
+- Template configuration available in `server/.env.example` and `ai-service/.env.example`.
