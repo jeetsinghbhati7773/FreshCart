@@ -203,10 +203,11 @@ const UserChat = () => {
     <>
       {/* Chat Toggle Button */}
       <button
-        className="fixed bottom-5 right-5 z-50 bg-primary hover:bg-primary-dull text-white p-3 rounded-full shadow-lg transition"
+        className="fixed bottom-5 right-24 z-40 bg-primary hover:bg-primary-dull text-white p-3 rounded-full shadow-lg transition flex items-center justify-center"
         onClick={toggleChat}
+        title="Chat with Seller"
       >
-        <IoChatboxEllipsesOutline size={30} />
+        <IoChatboxEllipsesOutline size={26} />
 
         {/* 🔴 Red Dot Overlay */}
         {hasNewMessage && (
@@ -216,7 +217,7 @@ const UserChat = () => {
 
       {/* Chat Box */}
       {open && (
-        <div className="fixed bottom-20 right-5 w-80 max-h-[60vh] bg-white shadow-xl border rounded-lg flex flex-col overflow-hidden z-50">
+        <div className="fixed bottom-20 right-24 w-80 max-h-[60vh] bg-white shadow-xl border rounded-lg flex flex-col overflow-hidden z-40">
           <div className="bg-primary text-white px-4 py-2 font-semibold flex items-center justify-between">
             <span>Chat with Seller</span>
             {/* <span

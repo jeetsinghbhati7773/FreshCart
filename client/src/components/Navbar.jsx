@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import { assets } from "../assets/assets.js";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
@@ -87,20 +86,6 @@ const Navbar = () => {
             }
           >
             All Products
-          </NavLink>
-
-          <NavLink
-            to="/shopping-assistant"
-            className={({ isActive }) =>
-              `flex items-center gap-1.5 font-semibold transition-all duration-200 px-3 py-1 rounded-full ${
-                isActive
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
-              }`
-            }
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>AI Assistant</span>
           </NavLink>
 
           <NavLink
@@ -263,17 +248,6 @@ const Navbar = () => {
               className="w-full py-2.5 px-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium cursor-pointer"
             >
               All Products
-            </div>
-
-            <div
-              onClick={() => {
-                setOpen(false);
-                navigate("/shopping-assistant");
-              }}
-              className="w-full py-2.5 px-3 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg font-semibold flex items-center gap-2 cursor-pointer border border-emerald-200"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              <span>AI Shopping Assistant</span>
             </div>
 
             {user && (

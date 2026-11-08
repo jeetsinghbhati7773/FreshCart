@@ -20,6 +20,7 @@ import UserChat from "./components/UserChat";
 import PaymentMethods from "./pages/PaymentMethods";
 import NotFound from "./pages/NotFound";
 import ShoppingAssistant from "./components/ai/ShoppingAssistant";
+import AiChatWidget from "./components/ai/AiChatWidget";
 const App = () => {
   const { showUserLogin, showAddressModal, user, isSeller } = useAppContext();
   const isSellerPath = useLocation().pathname.includes("seller");
@@ -58,6 +59,7 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
         {user && <UserChat />}
+        {!isSellerPath && <AiChatWidget />}
         <Toaster
           position="top-center"
           toastOptions={{ duration: 1000 }}
