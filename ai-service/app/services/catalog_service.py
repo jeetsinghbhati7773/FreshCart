@@ -37,7 +37,8 @@ class CatalogService:
         Calls internal Express catalog search endpoint.
         Falls back to public /api/products if internal endpoint is unavailable.
         """
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        timeout = httpx.Timeout(4.0, connect=1.5)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             # 1. Try internal search endpoint
             try:
                 params = {"query": query, "limit": limit}
@@ -51,6 +52,9 @@ class CatalogService:
                 if res.status_code == 200:
                     data = res.json()
                     return data.get("products", [])
+            except httpx.ConnectError:
+                logger.warning("Express backend is unreachable on %s", self.base_url)
+                return []
             except Exception as e:
                 logger.debug(f"Internal product search failed, falling back to public: {e}")
 
@@ -74,7 +78,8 @@ class CatalogService:
 
     async def get_product_by_id(self, product_id: str) -> Optional[Dict[str, Any]]:
         """Fetch exact real product by ID to confirm latest price and stock."""
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        timeout = httpx.Timeout(4.0, connect=1.5)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             try:
                 res = await client.get(
                     f"{self.base_url}/api/internal/ai/products/{product_id}",
@@ -83,6 +88,8 @@ class CatalogService:
                 if res.status_code == 200:
                     data = res.json()
                     return data.get("product")
+            except httpx.ConnectError:
+                return None
             except Exception:
                 pass
 

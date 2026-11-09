@@ -3,6 +3,8 @@ import { useAppContext } from "../context/AppContext";
 import axios from "axios";
 import { API_URL } from "../config";
 import toast from "react-hot-toast";
+import PayPalButton from "../components/payment/PayPalButton";
+import PaymentSummary from "../components/payment/PaymentSummary";
 
 const Cart = () => {
   const {
@@ -372,88 +374,132 @@ const Cart = () => {
             {/* Payment Method Selector */}
             <div className="mb-6">
               <label className="text-xs font-bold uppercase text-gray-500 tracking-wider block mb-2">
-                Payment Option
+                Payment Method
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("COD")}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
                     paymentMethod === "COD"
                       ? "border-green-600 bg-green-50 text-green-800 ring-2 ring-green-100"
                       : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   <span>💵</span>
-                  <span>Cash on Delivery</span>
+                  <span>COD</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("Online")}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
                     paymentMethod === "Online"
                       ? "border-green-600 bg-green-50 text-green-800 ring-2 ring-green-100"
                       : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
                   }`}
                 >
                   <span>💳</span>
-                  <span>Online Payment</span>
+                  <span>Razorpay</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("PayPal")}
+                  className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition flex flex-col sm:flex-row items-center justify-center gap-1 cursor-pointer ${
+                    paymentMethod === "PayPal"
+                      ? "border-sky-600 bg-sky-50 text-sky-900 ring-2 ring-sky-200"
+                      : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="font-extrabold text-[#003087]">P</span>
+                  <span>PayPal</span>
                 </button>
               </div>
             </div>
 
-            {/* Price Calculations */}
-            <div className="space-y-2.5 text-sm border-t border-gray-100 pt-4">
-              <div className="flex justify-between text-gray-600">
-                <span>Items Subtotal</span>
-                <span className="font-semibold text-gray-900">₹{totalPrice}</span>
+            {/* Price Calculations or PayPal Flow */}
+            {paymentMethod === "PayPal" ? (
+              <div className="space-y-4">
+                <PaymentSummary
+                  inrTotal={finalAmount}
+                  itemsCount={cartItems.length}
+                />
+
+                {user ? (
+                  <PayPalButton
+                    shippingAddress={selectedAddress}
+                    onSuccess={() => {
+                      clearCart();
+                      toast.success("🎉 Payment verified and order confirmed!");
+                    }}
+                    onError={(err) => {
+                      toast.error(typeof err === "string" ? err : "PayPal transaction could not be completed.");
+                    }}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setShowUserLogin(true)}
+                    className="w-full py-4 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-2xl shadow-lg transition-all cursor-pointer"
+                  >
+                    Login to Pay with PayPal
+                  </button>
+                )}
               </div>
-
-              {savings > 0 && (
-                <div className="flex justify-between text-emerald-700 font-medium">
-                  <span>Catalog Discount</span>
-                  <span>-₹{savings}</span>
-                </div>
-              )}
-
-              <div className="flex justify-between text-gray-600">
-                <span>Standard Delivery</span>
-                <span className="font-semibold text-green-600">FREE</span>
-              </div>
-
-              <div className="flex justify-between text-gray-600">
-                <span>Applicable GST (5%)</span>
-                <span className="font-semibold text-gray-900">₹{gst}</span>
-              </div>
-
-              <div className="border-t border-gray-200 pt-3 flex justify-between items-baseline">
-                <div>
-                  <span className="text-base font-extrabold text-gray-900 block">Total Due</span>
-                  <span className="text-[11px] text-gray-400">Guaranteed backend calculation</span>
-                </div>
-                <span className="text-2xl font-black text-gray-900">₹{finalAmount}</span>
-              </div>
-            </div>
-
-            {/* Place Order Button */}
-            {user ? (
-              <button
-                disabled={isSubmitting}
-                onClick={handlePlaceOrder}
-                className="w-full mt-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-green-600/30 hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-50"
-              >
-                {isSubmitting
-                  ? "Processing Order..."
-                  : `Confirm & Place Order (₹${finalAmount})`}
-              </button>
             ) : (
-              <button
-                onClick={() => setShowUserLogin(true)}
-                className="w-full mt-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg transition-all cursor-pointer"
-              >
-                Login to Checkout
-              </button>
+              <>
+                <div className="space-y-2.5 text-sm border-t border-gray-100 pt-4">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Items Subtotal</span>
+                    <span className="font-semibold text-gray-900">₹{totalPrice}</span>
+                  </div>
+
+                  {savings > 0 && (
+                    <div className="flex justify-between text-emerald-700 font-medium">
+                      <span>Catalog Discount</span>
+                      <span>-₹{savings}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-gray-600">
+                    <span>Standard Delivery</span>
+                    <span className="font-semibold text-green-600">FREE</span>
+                  </div>
+
+                  <div className="flex justify-between text-gray-600">
+                    <span>Applicable GST (5%)</span>
+                    <span className="font-semibold text-gray-900">₹{gst}</span>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-3 flex justify-between items-baseline">
+                    <div>
+                      <span className="text-base font-extrabold text-gray-900 block">Total Due</span>
+                      <span className="text-[11px] text-gray-400">Guaranteed backend calculation</span>
+                    </div>
+                    <span className="text-2xl font-black text-gray-900">₹{finalAmount}</span>
+                  </div>
+                </div>
+
+                {/* Place Order Button */}
+                {user ? (
+                  <button
+                    disabled={isSubmitting}
+                    onClick={handlePlaceOrder}
+                    className="w-full mt-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-green-600/30 hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmitting
+                      ? "Processing Order..."
+                      : `Confirm & Place Order (₹${finalAmount})`}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowUserLogin(true)}
+                    className="w-full mt-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg transition-all cursor-pointer"
+                  >
+                    Login to Checkout
+                  </button>
+                )}
+              </>
             )}
           </div>
         )}

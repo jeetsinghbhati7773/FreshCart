@@ -155,23 +155,34 @@ const MyOrders = () => {
                 </div>
 
                 <div className="col-span-2 flex flex-col justify-center items-center text-sm space-y-1">
-                  <p className="text-gray-700 text-center">
+                  <p className="text-gray-700 text-center flex items-center gap-1">
                     <span className="font-medium">Method:</span>{" "}
-                    {order.paymentMethod}
+                    {order.paymentMethod === "PAYPAL" ? (
+                      <span className="font-bold text-[#003087]">PayPal</span>
+                    ) : (
+                      order.paymentMethod
+                    )}
                   </p>
                   <p className="text-gray-700 text-center">
                     <span className="font-medium">Date:</span>{" "}
                     {new Date(order.createdAt).toLocaleDateString("en-GB")}
                   </p>
                   <p
-                    className={`text-center ${
-                      order.paymentMethod === "Online"
-                        ? "text-primary font-medium"
-                        : "text-red-500 font-medium"
+                    className={`text-center font-semibold text-xs px-2 py-0.5 rounded-full ${
+                      order.paymentStatus === "Paid" || order.paymentMethod === "Online"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : order.paymentStatus === "Cancelled" || order.paymentStatus === "Failed"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-amber-100 text-amber-800"
                     }`}
                   >
-                    {order.paymentMethod === "Online" ? " Paid" : " Pending"}
+                    {order.paymentStatus || (order.paymentMethod === "Online" ? "Paid" : "Pending")}
                   </p>
+                  {(order.paypalCaptureId || order.payments?.[0]?.providerCaptureId) && (
+                    <span className="text-[10px] font-mono text-gray-400 truncate max-w-[120px]" title={order.paypalCaptureId || order.payments?.[0]?.providerCaptureId}>
+                      Ref: {order.paypalCaptureId || order.payments?.[0]?.providerCaptureId}
+                    </span>
+                  )}
                 </div>
 
                 <div className="col-span-1 flex items-center justify-center">
@@ -263,7 +274,14 @@ const MyOrders = () => {
               <div className="pt-2 border-t border-gray-100">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Payment:</span>
-                  <span className="text-gray-700">{order.paymentMethod}</span>
+                  <span className="text-gray-700 font-medium">
+                    {order.paymentMethod === "PAYPAL" ? "PayPal" : order.paymentMethod}
+                    <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-semibold ${
+                      order.paymentStatus === "Paid" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                    }`}>
+                      {order.paymentStatus || "Pending"}
+                    </span>
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Date:</span>

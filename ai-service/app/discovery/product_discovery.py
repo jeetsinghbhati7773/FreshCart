@@ -34,7 +34,8 @@ class ProductDiscoveryEngine:
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
         """Invokes internal Express catalog search endpoint."""
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        timeout = httpx.Timeout(4.0, connect=1.5)
+        async with httpx.AsyncClient(timeout=timeout) as client:
             try:
                 params = {"query": query, "limit": limit}
                 if category and category.lower() != "all":
@@ -47,6 +48,8 @@ class ProductDiscoveryEngine:
                 if res.status_code == 200:
                     data = res.json()
                     return data.get("products", [])
+            except httpx.ConnectError:
+                return []
             except Exception as e:
                 logger.debug(f"Catalog query for '{query}' failed: {e}")
         return []

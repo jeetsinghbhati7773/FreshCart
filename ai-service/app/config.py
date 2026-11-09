@@ -1,6 +1,8 @@
+from pathlib import Path
 from typing import Literal, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 class Settings(BaseSettings):
     AI_SERVICE_PORT: int = 8005
@@ -21,7 +23,7 @@ class Settings(BaseSettings):
     INTERNAL_API_KEY: str = "shoppilot_internal_secret_key_step2_2026"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(_ENV_PATH, ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )

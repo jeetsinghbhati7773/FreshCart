@@ -70,7 +70,14 @@
 - **Prisma ORM 6.4** + **PostgreSQL**
 - **Decoupled Services:** `productService`, `cartService`, `inventoryService`
 - **Authentication:** JWT + bcrypt
-- **Payments:** Razorpay + Stripe (PayPal integration in Step 4)
+### 💳 Step 4: PayPal Integration & End-to-End Payment Processing (Complete)
+- **Authoritative Express Backend Payments**: The Express server remains the payment authority; the AI service is strictly decoupled and does not handle financial transactions.
+- **PayPal Orders v2 API**: REST order creation (`POST /v2/checkout/orders`, `intent: CAPTURE`) and authoritative capture (`POST /v2/checkout/orders/{id}/capture`) with `PayPal-Request-Id` idempotency.
+- **Transparent Currency Conversion Layer**: `CurrencyService` maps domestic INR prices to PayPal Sandbox currency (`USD`, default rate 0.0116 = ~₹86.20/USD) while retaining authoritative INR records in PostgreSQL.
+- **Atomic Inventory Reservations**: `ReservationService` locks required product stock in an atomic Prisma transaction for a 15-minute hold window during checkout, preventing overselling and auto-releasing stock on cancellation or expiry.
+- **Cryptographic Webhook Verification**: `POST /api/webhooks/paypal` validates signature certificates via PayPal's `/v1/notifications/verify-webhook-signature` API and processes events idempotently via PostgreSQL deduplication (`WebhookEvent` model).
+- **Responsive React UI Flow**: Interactive PayPal SDK Smart Buttons (`PayPalButton.jsx`), dual-currency cost summary (`PaymentSummary.jsx`), verified confirmation screen (`PaymentSuccess.jsx`), cancellation recovery (`PaymentCancelled.jsx`), and live order tracking badge in `MyOrders.jsx`.
+- **End-to-End Verification Test Suite**: Comprehensive automated test (`server/test/step4Verify.js`) passing all 5 phases: currency conversion, inventory holds/releases, public config, order creation/capture lifecycle, and webhook deduplication.
 - **Cloud Services:** Cloudinary (image uploads), Nodemailer (OTP / notifications)
 - **Documentation:** Interactive OpenAPI 3.0 via Swagger UI at `/api/docs`
 
@@ -129,6 +136,12 @@ Run the Step 1 automated test suite:
 ```powershell
 cd server
 node test/step1Verify.js
+```
+
+Run the Step 4 PayPal End-to-End automated test suite:
+```powershell
+cd server
+node test/step4Verify.js
 ```
 
 ### Test Coverage (100% Passing):

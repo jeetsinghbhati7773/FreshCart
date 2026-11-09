@@ -105,6 +105,7 @@ export const getMyOrders = async (req, res) => {
             product: true,
           },
         },
+        payments: true,
       },
     });
 

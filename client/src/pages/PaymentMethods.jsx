@@ -9,6 +9,16 @@ import {
 
 const paymentData = [
   {
+    category: "PayPal (AI Smart Checkout)",
+    icon: <FaWallet className="w-5 h-5 text-sky-600" />,
+    methods: [
+      {
+        name: "PayPal",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
+      },
+    ],
+  },
+  {
     category: "Cards",
     icon: <FaCreditCard className="w-5 h-5 text-blue-600" />,
     methods: [

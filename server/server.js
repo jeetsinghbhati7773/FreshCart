@@ -27,6 +27,8 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import internalRoutes from "./routes/internalRoutes.js";
 import aiProxyRoutes from "./routes/aiProxyRoutes.js";
+import paypalRoutes from "./routes/paypalRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 // Load .env variables
 dotenv.config();
@@ -36,7 +38,11 @@ const port = process.env.PORT || 10000;
 const server = http.createServer(app);
 
 // Middlewares
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.set("view engine", "ejs");
@@ -78,6 +84,9 @@ app.use("/api/ai", aiProxyRoutes);
 app.use("/api/orders", OrderRoutes);
 app.use("/api/userAuth", authRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/payments/paypal", paypalRoutes);
+app.use("/api/payment/paypal", paypalRoutes);
+app.use("/api/webhooks", webhookRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/subscribe", subscribeRoute);
