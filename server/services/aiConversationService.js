@@ -287,3 +287,4 @@ class AIConversationService {
 }
 
 export default new AIConversationService();
+

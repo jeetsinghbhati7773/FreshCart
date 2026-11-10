@@ -33,10 +33,6 @@ def formulate_fallback_response(state: AgentState) -> str:
     if suggestions:
         lines.append("\n" + "\n".join([f"• {s}" for s in suggestions]))
 
-    applied = state.get("applied_memories") or []
-    if applied:
-        lines.append(f"✨ Applied your saved preferences: {', '.join(applied)}")
-
     return "\n\n".join(lines)
 
 

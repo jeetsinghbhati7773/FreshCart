@@ -161,39 +161,65 @@ class CatalogService:
             # Fallback to integer units
             return max(1, int(round(req_qty)))
 
-    async def match_item_to_product(self, item: GroceryItem) -> Optional[MatchedProduct]:
+    async def match_item_to_product(
+        self,
+        item: GroceryItem,
+        preferred_brands: Optional[List[str]] = None,
+        disliked_brands: Optional[List[str]] = None,
+    ) -> Optional[MatchedProduct]:
         """
         Finds the best matching catalog product from FreshCart PostgreSQL database
         and calculates package multiplier, total cost, and stock verification.
+        Personalizes selection towards preferred brands and excludes disliked brands.
         """
         # Clean item name: remove parenthetical synonyms e.g. "Atta (Wheat Flour)" -> "Atta"
         cleaned_name = re.sub(r'\(.*?\)', '', item.name).strip()
 
         # 1. Search catalog by cleaned grocery name and category
-        candidates = await self.search_products(query=cleaned_name, category=item.category, limit=5)
+        candidates = await self.search_products(query=cleaned_name, category=item.category, limit=8)
         
         # 2. Try singular form (e.g. "Potatoes" -> "Potato", "Tomatoes" -> "Tomato", "Onions" -> "Onion")
         if not candidates and (cleaned_name.endswith("s") or cleaned_name.endswith("es")):
             singular = re.sub(r'es$', '', cleaned_name) if cleaned_name.endswith("es") else cleaned_name[:-1]
-            candidates = await self.search_products(query=singular, category=item.category, limit=5)
+            candidates = await self.search_products(query=singular, category=item.category, limit=8)
 
         # 3. If not found, try the first keyword (e.g. "Toor" from "Toor Dal")
         if not candidates:
             parts = cleaned_name.split()
             if len(parts) > 1:
-                candidates = await self.search_products(query=parts[0], category=item.category, limit=5)
+                candidates = await self.search_products(query=parts[0], category=item.category, limit=8)
 
         # 4. If still not found, search across all categories
         if not candidates:
-            candidates = await self.search_products(query=cleaned_name, limit=5)
+            candidates = await self.search_products(query=cleaned_name, limit=8)
 
         if not candidates:
             logger.info(f"No catalog product found for grocery item: {item.name}")
             return None
 
+        # Filter out disliked brands
+        if disliked_brands:
+            dis_lower = [d.strip().lower() for d in disliked_brands if d]
+            non_disliked = [
+                c for c in candidates
+                if not (c.get("brand") and any(d in c.get("brand", "").lower() for d in dis_lower))
+            ]
+            if non_disliked:
+                candidates = non_disliked
+
         # Filter candidate products that are active and in stock
         in_stock_candidates = [c for c in candidates if c.get("inStock", True) and c.get("stockQuantity", 0) > 0]
-        selected = in_stock_candidates[0] if in_stock_candidates else candidates[0]
+        pool = in_stock_candidates if in_stock_candidates else candidates
+
+        # Prioritize preferred brand if available
+        selected = pool[0]
+        if preferred_brands:
+            pref_lower = [p.strip().lower() for p in preferred_brands if p]
+            for cand in pool:
+                cand_brand = (cand.get("brand") or "").lower()
+                if any(p in cand_brand for p in pref_lower):
+                    selected = cand
+                    break
 
         # Extract verified database fields
         prod_id = selected.get("id") or selected.get("_id")

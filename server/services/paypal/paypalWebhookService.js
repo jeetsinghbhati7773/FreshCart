@@ -2,6 +2,7 @@ import prisma from "../../config/prisma.js";
 import { paypalFetch } from "./paypalClient.js";
 import { getPayPalAccessToken } from "./paypalAuth.js";
 import { ReservationService } from "../reservationService.js";
+import UserPreferenceService from "../userPreferenceService.js";
 
 export class PayPalWebhookService {
   /**
@@ -226,6 +227,9 @@ export class PayPalWebhookService {
     });
 
     console.log(`✅ Webhook: Order #${order.id} marked as Paid via capture ${captureId}`);
+    UserPreferenceService.updatePreferencesFromOrder(order.id).catch((err) =>
+      console.error("Webhook preference update background error:", err.message)
+    );
   }
 
   /**

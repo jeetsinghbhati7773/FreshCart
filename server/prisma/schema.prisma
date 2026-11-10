@@ -23,6 +23,9 @@ model User {
   summaries      ConversationSummary[]
   memories       UserMemory[]
   memorySettings UserMemorySetting?
+  shoppingProfile UserShoppingProfile?
+  productPreferences UserProductPreference[]
+  brandPreferences   UserBrandPreference[]
 
   @@map("users")
 }
@@ -45,6 +48,7 @@ model Product {
 
   orderItems    OrderItem[]
   cartItems     CartItem[]
+  userPreferences UserProductPreference[]
 
   @@index([category])
   @@index([name])
@@ -278,4 +282,63 @@ model UserMemorySetting {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("user_memory_settings")
+}
+
+model UserShoppingProfile {
+  id                          String    @id @default(uuid())
+  userId                      String    @unique @map("user_id")
+  user                        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredCategories         Json      @default("[]") @map("preferred_categories")
+  preferredBrands             Json      @default("[]") @map("preferred_brands")
+  frequentlyPurchasedProducts  Json      @default("[]") @map("frequently_purchased_products")
+  pricePreference             String    @default("balanced") @map("price_preference") // "budget_friendly", "balanced", "premium"
+  typicalBudget               Float?    @map("typical_budget")
+  budgetCurrency              String    @default("INR") @map("budget_currency")
+  typicalShoppingInterval     Int?      @map("typical_shopping_interval") // days between grocery cycles
+  householdSize               Int?      @map("household_size")
+  lastAnalyzedAt              DateTime? @map("last_analyzed_at")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  @@map("user_shopping_profiles")
+}
+
+model UserProductPreference {
+  id                      String    @id @default(uuid())
+  userId                  String    @map("user_id")
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId               String    @map("product_id")
+  product                 Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  purchaseCount           Int       @default(0) @map("purchase_count")
+  totalQuantityPurchased  Int       @default(0) @map("total_quantity_purchased")
+  lastPurchasedAt         DateTime? @map("last_purchased_at")
+  firstPurchasedAt        DateTime? @map("first_purchased_at")
+  averagePurchaseInterval Float?    @map("average_purchase_interval") // days
+  preferenceScore         Float     @default(0.0) @map("preference_score") // 0.0 to 1.0
+  explicitlyPreferred     Boolean   @default(false) @map("explicitly_preferred")
+  isDisliked              Boolean   @default(false) @map("is_disliked")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, productId])
+  @@index([userId, preferenceScore(sort: Desc)])
+  @@map("user_product_preferences")
+}
+
+model UserBrandPreference {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand           String
+  purchaseCount   Int       @default(0) @map("purchase_count")
+  lastPurchasedAt DateTime? @map("last_purchased_at")
+  preferenceScore     Float     @default(0.0) @map("preference_score") // 0.0 to 1.0
+  explicitlyPreferred Boolean   @default(false) @map("explicitly_preferred")
+  isDisliked          Boolean   @default(false) @map("is_disliked")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([userId, brand])
+  @@index([userId, preferenceScore(sort: Desc)])
+  @@map("user_brand_preferences")
 }

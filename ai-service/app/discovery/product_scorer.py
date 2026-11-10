@@ -102,12 +102,24 @@ class ProductScorer:
             return max(0.2, 1.0 - (excess_ratio * 0.2))
 
     @classmethod
-    def compute_brand_score(cls, prod_brand: Optional[str], preferred_brands: List[str]) -> float:
-        """1.0 if matches preferred brand, 0.6 if brand exists, 0.4 if generic."""
+    def compute_brand_score(
+        cls,
+        prod_brand: Optional[str],
+        preferred_brands: List[str],
+        disliked_brands: Optional[List[str]] = None,
+    ) -> float:
+        """1.0 if matches preferred brand, 0.0 if disliked, 0.7 if brand exists, 0.5 if generic."""
         if not prod_brand:
             return 0.5
+        brand_lower = prod_brand.strip().lower()
+
+        # Strict negative preference guard
+        if disliked_brands:
+            for dis in disliked_brands:
+                if dis.strip().lower() in brand_lower:
+                    return 0.0
+
         if preferred_brands:
-            brand_lower = prod_brand.strip().lower()
             for pref in preferred_brands:
                 if pref.strip().lower() in brand_lower:
                     return 1.0
@@ -140,10 +152,23 @@ class ProductScorer:
         req_unit: str,
         req_category: Optional[str] = None,
         preferred_brands: Optional[List[str]] = None,
+        disliked_brands: Optional[List[str]] = None,
+        disliked_product_ids: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Computes composite score and component scores for a single product candidate.
         """
+        cand_id = candidate.get("id") or candidate.get("_id")
+        if disliked_product_ids and cand_id in disliked_product_ids:
+            return {
+                "product": candidate,
+                "composite_score": 0.0,
+                "packages_needed": 1,
+                "package_size": 1.0,
+                "package_unit": "pc",
+                "scores": {"disliked": 1.0},
+            }
+
         prod_name = candidate.get("name", "")
         prod_category = candidate.get("category", "")
         prod_brand = candidate.get("brand")
@@ -164,18 +189,22 @@ class ProductScorer:
         s_semantic = cls.compute_semantic_score(requirement_name, prod_name)
         s_category = cls.compute_category_score(req_category, prod_category)
         s_package = cls.compute_package_suitability_score(req_quantity, req_unit, pkg_size_val, pkg_unit)
-        s_brand = cls.compute_brand_score(prod_brand, preferred_brands or [])
+        s_brand = cls.compute_brand_score(prod_brand, preferred_brands or [], disliked_brands or [])
         s_price = cls.compute_price_score(offer_price, mrp_price)
         s_stock = cls.compute_stock_score(stock_qty, packages_needed, in_stock)
 
-        composite_score = (
-            cls.WEIGHTS["semantic"] * s_semantic
-            + cls.WEIGHTS["category"] * s_category
-            + cls.WEIGHTS["package_suitability"] * s_package
-            + cls.WEIGHTS["brand"] * s_brand
-            + cls.WEIGHTS["price"] * s_price
-            + cls.WEIGHTS["stock"] * s_stock
-        )
+        # If brand is disliked or product is out of stock, composite score collapses
+        if s_brand == 0.0 or not in_stock:
+            composite_score = 0.0
+        else:
+            composite_score = (
+                cls.WEIGHTS["semantic"] * s_semantic
+                + cls.WEIGHTS["category"] * s_category
+                + cls.WEIGHTS["package_suitability"] * s_package
+                + cls.WEIGHTS["brand"] * s_brand
+                + cls.WEIGHTS["price"] * s_price
+                + cls.WEIGHTS["stock"] * s_stock
+            )
 
         return {
             "product": candidate,

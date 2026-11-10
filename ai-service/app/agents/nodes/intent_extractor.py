@@ -195,6 +195,31 @@ async def intent_extractor_node(state: AgentState) -> Dict[str, Any]:
             except Exception:
                 pass
 
+    # Apply Learned Profile & Preferences (Immediate user prompt overrides historical profile)
+    learned_profile = state.get("learned_profile") or {}
+    learned_brands = state.get("preferred_brands") or []
+    disliked_brands = [b.lower() for b in (state.get("disliked_brands") or [])]
+
+    if not intent_obj.family_size and learned_profile.get("householdSize"):
+        try:
+            intent_obj.family_size = int(learned_profile["householdSize"])
+        except Exception:
+            pass
+
+    if not intent_obj.budget and learned_profile.get("typicalBudget"):
+        try:
+            intent_obj.budget = Decimal(str(learned_profile["typicalBudget"]))
+        except Exception:
+            pass
+
+    # Merge learned preferred brands
+    merged_brands = list(intent_obj.preferred_brands or [])
+    for b in learned_brands:
+        if b and b.lower() not in [x.lower() for x in merged_brands] and b.lower() not in disliked_brands:
+            merged_brands.append(b)
+    # Remove disliked brands
+    intent_obj.preferred_brands = [b for b in merged_brands if b.lower() not in disliked_brands]
+
     # Re-verify missing fields
     missing = []
     if not intent_obj.family_size:

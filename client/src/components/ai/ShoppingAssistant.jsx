@@ -17,7 +17,6 @@ import {
   Edit2,
   Check,
   X,
-  Brain,
   Menu,
   Lock,
   ArrowRight,
@@ -65,8 +64,6 @@ const ShoppingAssistant = () => {
   const [messages, setMessages] = useState([DEFAULT_WELCOME]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [memoryCount, setMemoryCount] = useState(0);
-  const [appliedMemories, setAppliedMemories] = useState([]);
 
   // Live Intelligence Dashboard State
   const [intent, setIntent] = useState(null);
@@ -87,22 +84,12 @@ const ShoppingAssistant = () => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Load conversations and memory count when user is logged in
+  // Load conversations when user is logged in
   useEffect(() => {
     if (user) {
       loadConversations();
-      loadMemoryCount();
     }
   }, [user]);
-
-  const loadMemoryCount = async () => {
-    try {
-      const mems = await aiChatService.fetchMemories({ status: "active" });
-      setMemoryCount(mems.length);
-    } catch {
-      // non-fatal
-    }
-  };
 
   const loadConversations = async (targetActiveId = null) => {
     setLoadingConversations(true);
@@ -192,7 +179,6 @@ const ShoppingAssistant = () => {
     if (meta.grocery_plan) setGroceryPlan(meta.grocery_plan);
     if (meta.matched_products) setMatchedProducts(meta.matched_products);
     if (meta.optimized_cart) setOptimizedCart(meta.optimized_cart);
-    if (meta.applied_memories) setAppliedMemories(meta.applied_memories);
   };
 
   const resetIntelligenceDashboard = () => {
@@ -203,7 +189,6 @@ const ShoppingAssistant = () => {
     setBudgetStatus("not_calculated");
     setBudgetDifference(0);
     setOptimizedCart(null);
-    setAppliedMemories([]);
   };
 
   const handleNewChat = async (notify = true) => {
@@ -263,10 +248,6 @@ const ShoppingAssistant = () => {
           if (aiResp.optimized_cart) setOptimizedCart(aiResp.optimized_cart);
         }
 
-        if (response.appliedMemories) {
-          setAppliedMemories(response.appliedMemories.map((m) => m.description));
-        }
-
         // Append assistant message from PostgreSQL
         setMessages((prev) => [
           ...prev,
@@ -284,7 +265,6 @@ const ShoppingAssistant = () => {
 
         // Refresh conversation sidebar to update title / lastMessageAt
         loadConversations(convId);
-        loadMemoryCount();
       } else {
         throw new Error(response.message || "Failed to process message");
       }
@@ -456,16 +436,10 @@ const ShoppingAssistant = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link
-            to="/ai-memory"
-            className="flex items-center gap-2 text-xs font-bold px-3.5 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors shadow-sm"
-          >
-            <Brain className="w-4 h-4 text-emerald-600" />
-            <span>My AI Memory</span>
-            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center">
-              {memoryCount}
-            </span>
-          </Link>
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Autonomous Intelligence</span>
+          </span>
         </div>
       </div>
 
@@ -670,12 +644,6 @@ const ShoppingAssistant = () => {
                 <span className="font-bold text-gray-900 block truncate">{user.name}</span>
                 <span className="text-[10px] text-gray-400 block truncate">{user.email}</span>
               </div>
-              <Link
-                to="/ai-memory"
-                className="text-[11px] text-emerald-600 hover:text-emerald-700 font-bold"
-              >
-                Memories
-              </Link>
             </div>
           </aside>
         )}
@@ -696,15 +664,6 @@ const ShoppingAssistant = () => {
                 {activeConversationId ? `ID: ${activeConversationId.slice(0, 8)}` : "Live"}
               </span>
             </div>
-
-            {/* Applied Memories Banner */}
-            {appliedMemories.length > 0 && (
-              <div className="px-3.5 py-1.5 bg-emerald-50/90 border-b border-emerald-100 flex items-center gap-1.5 text-[11px] text-emerald-800">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span className="font-bold">Remembered:</span>
-                <span className="truncate">{appliedMemories.join(" • ")}</span>
-              </div>
-            )}
 
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50/40 to-white">

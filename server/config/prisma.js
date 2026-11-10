@@ -109,6 +109,30 @@ const prisma = basePrisma.$extends({
         },
       },
     },
+    userShoppingProfile: {
+      _id: {
+        needs: { id: true },
+        compute(p) {
+          return p.id;
+        },
+      },
+    },
+    userProductPreference: {
+      _id: {
+        needs: { id: true },
+        compute(p) {
+          return p.id;
+        },
+      },
+    },
+    userBrandPreference: {
+      _id: {
+        needs: { id: true },
+        compute(b) {
+          return b.id;
+        },
+      },
+    },
   },
 });
 

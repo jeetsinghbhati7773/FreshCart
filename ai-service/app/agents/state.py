@@ -7,6 +7,11 @@ class AgentState(TypedDict):
     current_message: str
     conversation_history: List[Dict[str, str]]
     user_memories: Optional[List[Dict[str, Any]]]
+    learned_profile: Optional[Dict[str, Any]]
+    preferred_brands: Optional[List[str]]
+    preferred_products: Optional[List[str]]
+    disliked_brands: Optional[List[str]]
+    disliked_product_ids: Optional[List[str]]
     conversation_summary: Optional[str]
     applied_memories: Optional[List[str]]
     shopping_intent: Optional[Dict[str, Any]]

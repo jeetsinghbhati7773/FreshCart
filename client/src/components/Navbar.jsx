@@ -198,12 +198,6 @@ const Navbar = () => {
                   <span>🤖</span> AI Concierge
                 </li>
                 <li
-                  onClick={() => navigate("/ai-memory")}
-                  className="px-4 py-2.5 hover:bg-emerald-50 text-gray-700 cursor-pointer transition-colors font-medium flex items-center gap-2"
-                >
-                  <span>🧠</span> My AI Memory
-                </li>
-                <li
                   onClick={goToOrders}
                   className="px-4 py-2.5 hover:bg-green-50 text-gray-700 cursor-pointer transition-colors font-medium flex items-center gap-2"
                 >
@@ -284,18 +278,6 @@ const Navbar = () => {
             >
               <span>🤖</span> AI Concierge
             </div>
-
-            {user && (
-              <div
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/ai-memory");
-                }}
-                className="w-full py-2.5 px-3 text-purple-700 hover:bg-purple-50 rounded-lg font-medium cursor-pointer flex items-center gap-2"
-              >
-                <span>🧠</span> My AI Memory
-              </div>
-            )}
 
             {user && (
               <div

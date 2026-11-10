@@ -19,3 +19,4 @@ router.put("/:id", (req, res) => aiMemoryController.updateMemory(req, res));
 router.delete("/:id", (req, res) => aiMemoryController.deleteMemory(req, res));
 
 export default router;
+

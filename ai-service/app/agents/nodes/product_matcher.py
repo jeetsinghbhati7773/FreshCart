@@ -16,10 +16,19 @@ async def product_matcher_node(state: AgentState) -> Dict[str, Any]:
     """
     raw_items = state.get("grocery_items") or []
     grocery_items = [GroceryItem(**item) for item in raw_items]
+    preferred_brands = state.get("preferred_brands") or []
+    disliked_brands = state.get("disliked_brands") or []
 
-    # Concurrent parallel matching for instant resolution
+    # Concurrent parallel matching with personalized preference weighting
     matches = await asyncio.gather(
-        *[catalog_service.match_item_to_product(item) for item in grocery_items],
+        *[
+            catalog_service.match_item_to_product(
+                item,
+                preferred_brands=preferred_brands,
+                disliked_brands=disliked_brands,
+            )
+            for item in grocery_items
+        ],
         return_exceptions=True
     )
 

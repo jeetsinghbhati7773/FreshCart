@@ -20,8 +20,6 @@ import UserChat from "./components/UserChat";
 import PaymentMethods from "./pages/PaymentMethods";
 import NotFound from "./pages/NotFound";
 import ShoppingAssistant from "./components/ai/ShoppingAssistant";
-import MyAiMemory from "./pages/MyAiMemory";
-import AiChatWidget from "./components/ai/AiChatWidget";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 const App = () => {
@@ -47,7 +45,6 @@ const App = () => {
           <Route path="/product/:productId" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/shopping-assistant" element={<ShoppingAssistant />} />
-          <Route path="/ai-memory" element={<MyAiMemory />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/payment-methods" element={<PaymentMethods />} />
           <Route path="/seller-login" element={<SellerLogin />} />
@@ -66,7 +63,6 @@ const App = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
         {user && <UserChat />}
-        {!isSellerPath && <AiChatWidget />}
         <Toaster
           position="top-center"
           toastOptions={{ duration: 1000 }}

@@ -1,5 +1,6 @@
 import aiConversationService from "../services/aiConversationService.js";
-import aiMemoryService from "../services/aiMemoryService.js";
+import UserPreferenceService from "../services/userPreferenceService.js";
+import prisma from "../config/prisma.js";
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8005";
 const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || "shoppilot_internal_secret_key_step2_2026";
@@ -169,24 +170,22 @@ class AIConversationController {
         messageType,
       });
 
-      // 2. Fetch relevant long-term memories & summary
-      const [relevantMemories, summaryObj] = await Promise.all([
-        aiMemoryService.retrieveRelevantMemories(userId, trimmedContent, 6),
+      // 2. Fetch learned profile silently from database & conversation summary
+      const [learnedProfile, summaryObj] = await Promise.all([
+        UserPreferenceService.getLearnedProfile(userId),
         aiConversationService.getLatestSummary(conversationId, userId),
       ]);
 
-      // 3. Forward to Python FastAPI AI microservice
+      // 3. Forward to Python FastAPI AI microservice with learned preferences
       const payload = {
         conversation_id: conversationId,
         user_id: userId,
         message: trimmedContent,
-        user_memories: relevantMemories.map((m) => ({
-          category: m.category,
-          key: m.memoryKey,
-          value: m.memoryValue,
-          description: m.description,
-          importance: m.importance,
-        })),
+        learned_profile: learnedProfile?.profile || null,
+        preferred_brands: (learnedProfile?.preferredBrands || []).map((b) => b.brand),
+        preferred_products: (learnedProfile?.preferredProducts || []).map((p) => p.product?.name || "").filter(Boolean),
+        disliked_brands: learnedProfile?.dislikedBrands || [],
+        disliked_product_ids: learnedProfile?.dislikedProductIds || [],
         conversation_summary: summaryObj ? summaryObj.summary : null,
       };
 
@@ -240,7 +239,6 @@ class AIConversationController {
           grocery_plan: aiData.grocery_plan || null,
           matched_products: aiData.matched_products || null,
           optimized_cart: aiData.optimized_cart || null,
-          applied_memories: relevantMemories.map((m) => m.description),
           stage: aiData.stage || null,
         };
       }
@@ -257,20 +255,15 @@ class AIConversationController {
         }
       );
 
-      // 5. Asynchronously trigger memory extraction if active
-      this.triggerAsyncMemoryExtraction(userId, conversationId, trimmedContent).catch((err) =>
-        console.error("Async memory extraction error:", err.message)
+      // 5. Asynchronously extract preferences silently in the background
+      this.triggerAsyncPreferenceLearning(userId, conversationId, trimmedContent).catch((err) =>
+        console.error("Async preference learning error:", err.message)
       );
 
       return res.json({
         success: true,
         userMessage: savedUserMessage,
         assistantMessage: savedAssistantMessage,
-        appliedMemories: relevantMemories.map((m) => ({
-          key: m.memoryKey,
-          description: m.description,
-          category: m.category,
-        })),
         aiResponse: aiData,
       });
     } catch (err) {
@@ -283,110 +276,67 @@ class AIConversationController {
   }
 
   /**
-   * Extract shopping habits, household context, brand loyalty, or budget rules from user text.
+   * Silently learn user preferences and negative constraints from conversation in the background.
    */
-  async triggerAsyncMemoryExtraction(userId, conversationId, userText) {
+  async triggerAsyncPreferenceLearning(userId, conversationId, userText) {
     try {
-      const settings = await aiMemoryService.getSettings(userId);
-      if (!settings.autoExtract) return;
-
       const lower = userText.toLowerCase();
 
-      // Rule 1: Household size
+      // 1. Household size learning
       const householdMatch = lower.match(
         /(?:family of|household of|groceries for|for|living with)\s+(\d+)\s*(?:people|persons|members|adults)?/i
       );
       if (householdMatch && parseInt(householdMatch[1], 10) > 0) {
         const count = parseInt(householdMatch[1], 10);
-        await aiMemoryService.upsertMemory(userId, {
-          category: "household_context",
-          memoryKey: "household_size",
-          memoryValue: count,
-          description: `User shops for a household of ${count} people`,
-          sourceType: "conversation",
-          sourceId: conversationId,
-          confidence: 0.95,
-          importance: 0.9,
-        });
+        await UserPreferenceService.recordHouseholdSize(userId, count);
       }
 
-      // Rule 2: Dietary preference
-      if (lower.includes("vegetarian") || lower.includes("pure veg") || lower.includes("only veg")) {
-        await aiMemoryService.upsertMemory(userId, {
-          category: "dietary_preference",
-          memoryKey: "dietary_type",
-          memoryValue: "Vegetarian",
-          description: "Prefers strictly vegetarian grocery items",
-          sourceType: "conversation",
-          sourceId: conversationId,
-          confidence: 0.98,
-          importance: 0.95,
-        });
-      } else if (lower.includes("vegan")) {
-        await aiMemoryService.upsertMemory(userId, {
-          category: "dietary_preference",
-          memoryKey: "dietary_type",
-          memoryValue: "Vegan",
-          description: "Strict vegan diet; exclude dairy, eggs, meat, and honey",
-          sourceType: "conversation",
-          sourceId: conversationId,
-          confidence: 0.98,
-          importance: 0.95,
-        });
-      } else if (lower.includes("gluten-free") || lower.includes("gluten free")) {
-        await aiMemoryService.upsertMemory(userId, {
-          category: "dietary_preference",
-          memoryKey: "allergy_gluten",
-          memoryValue: "Gluten-Free",
-          description: "Avoid gluten-containing flours, breads, and grains",
-          sourceType: "conversation",
-          sourceId: conversationId,
-          confidence: 0.98,
-          importance: 0.95,
-        });
+      // 2. Disliked Brands (Negative preference boycott)
+      const dislikeBrandMatch = userText.match(
+        /(?:don't suggest|avoid|stop suggesting|hate|don't like|do not like)\s+([A-Z][a-zA-Z0-9\s]{2,15})(?:\s+brand|\s+milk|\s+oil)?/i
+      );
+      if (dislikeBrandMatch) {
+        const brand = dislikeBrandMatch[1].trim();
+        await UserPreferenceService.recordBrandPreference(userId, brand, { isDisliked: true });
       }
 
-      // Rule 3: Brand preference
+      // 3. Preferred Brands (Positive preference)
       const brandMatch = userText.match(
-        /(?:prefer|always buy|only buy|favourite brand is|love)\s+([A-Z][a-zA-Z0-9\s]{2,20})\s+(?:milk|bread|butter|rice|atta|tea|coffee|oil|ghee)/i
+        /(?:prefer|always buy|only buy|favourite brand is|love)\s+([A-Z][a-zA-Z0-9\s]{2,20})(?:\s+brand|\s+milk|\s+bread|\s+butter|\s+rice|\s+atta|\s+tea|\s+coffee|\s+oil|\s+ghee)?/i
       );
-      if (brandMatch) {
+      if (brandMatch && !dislikeBrandMatch) {
         const brandName = brandMatch[1].trim();
-        await aiMemoryService.upsertMemory(userId, {
-          category: "brand_preference",
-          memoryKey: `preferred_brand_${brandName.toLowerCase().replace(/\s+/g, "_")}`,
-          memoryValue: brandName,
-          description: `Prefers ${brandName} brand for grocery staples`,
-          sourceType: "conversation",
-          sourceId: conversationId,
-          confidence: 0.9,
-          importance: 0.85,
-        });
+        await UserPreferenceService.recordBrandPreference(userId, brandName, { isDisliked: false });
       }
 
-      // Rule 4: Budget constraints
-      const budgetMatch = lower.match(
-        /(?:budget|max spend|under|within|cap at)\s*(?:of|is)?\s*(?:₹|rs\.?|inr)?\s*(\d{3,6})/i
+      // 4. Disliked Products
+      const dislikeProdMatch = lower.match(
+        /(?:don't like|hate|avoid|allergic to|no)\s+(mushrooms|capsicum|onions|eggs|paneer|curd|coriander|meat|chicken)/i
       );
-      if (budgetMatch) {
-        const amount = parseInt(budgetMatch[1], 10);
-        if (amount >= 200 && amount <= 50000) {
-          await aiMemoryService.upsertMemory(userId, {
-            category: "budget_preference",
-            memoryKey: "stated_target_budget",
-            memoryValue: { amount, currency: "INR" },
-            description: `Target grocery budget typically around ₹${amount}`,
-            sourceType: "conversation",
-            sourceId: conversationId,
-            confidence: 0.85,
-            importance: 0.8,
-          });
+      if (dislikeProdMatch) {
+        const prodTerm = dislikeProdMatch[1].toLowerCase();
+        const matched = await prisma.product.findFirst({
+          where: { name: { contains: prodTerm, mode: "insensitive" } },
+          select: { id: true },
+        });
+        if (matched) {
+          await UserPreferenceService.recordProductPreference(userId, matched.id, { isDisliked: true });
         }
       }
+
+      // 5. Trigger order history analysis if never analyzed
+      const profile = await prisma.userShoppingProfile.findUnique({
+        where: { userId },
+        select: { lastAnalyzedAt: true },
+      });
+      if (!profile || !profile.lastAnalyzedAt) {
+        await UserPreferenceService.analyzeOrderHistory(userId);
+      }
     } catch (err) {
-      console.warn("Preference extraction warning:", err.message);
+      console.warn("Preference learning warning:", err.message);
     }
   }
 }
 
 export default new AIConversationController();
+

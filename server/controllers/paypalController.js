@@ -3,6 +3,7 @@ import { CurrencyService } from "../services/currencyService.js";
 import { ReservationService } from "../services/reservationService.js";
 import { PayPalOrderService } from "../services/paypal/paypalOrderService.js";
 import { PayPalCaptureService } from "../services/paypal/paypalCaptureService.js";
+import UserPreferenceService from "../services/userPreferenceService.js";
 
 /**
  * Controller for PayPal Checkout transactions
@@ -282,6 +283,11 @@ export const paypalController = {
 
         return ord;
       });
+
+      // Background asynchronous user preference learning from completed paid order
+      UserPreferenceService.updatePreferencesFromOrder(updatedOrder.id).catch((err) =>
+        console.error("Order preference learning background error:", err.message)
+      );
 
       return res.json({
         success: true,

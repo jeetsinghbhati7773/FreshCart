@@ -11,6 +11,11 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = Field(default=None, description="Optional authenticated user ID")
     message: str = Field(description="Natural language message from the customer")
     user_memories: Optional[List[Dict[str, Any]]] = Field(default=None, description="User-specific long term memories")
+    learned_profile: Optional[Dict[str, Any]] = Field(default=None, description="Internal learned shopping profile")
+    preferred_brands: Optional[List[str]] = Field(default=None, description="Learned preferred brands")
+    preferred_products: Optional[List[str]] = Field(default=None, description="Learned favorite products")
+    disliked_brands: Optional[List[str]] = Field(default=None, description="Disliked brands to avoid")
+    disliked_product_ids: Optional[List[str]] = Field(default=None, description="Disliked product IDs")
     conversation_summary: Optional[str] = Field(default=None, description="Compact historical summary")
 
 
