@@ -151,6 +151,50 @@ async def intent_extractor_node(state: AgentState) -> Dict[str, Any]:
     if budget_from_text:
         intent_obj.budget = budget_from_text
 
+    # Apply Long-Term User Memories if fields are missing (Immediate user prompt overrides memories)
+    applied_memories = list(state.get("applied_memories") or [])
+    user_memories = state.get("user_memories") or []
+
+    for mem in user_memories:
+        cat = mem.get("category")
+        key = mem.get("key") or mem.get("memoryKey")
+        val = mem.get("value") or mem.get("memoryValue")
+        desc = mem.get("description") or ""
+
+        # Household size from memory
+        if not intent_obj.family_size and (cat == "household_context" or key == "household_size"):
+            try:
+                size = int(val) if isinstance(val, (int, str)) else 4
+                if size > 0:
+                    intent_obj.family_size = size
+                    applied_memories.append(f"Household size: {size} people")
+            except Exception:
+                pass
+
+        # Dietary preference from memory
+        if cat == "dietary_preference":
+            diet_str = str(val).lower()
+            if diet_str not in [d.lower() for d in (intent_obj.dietary_preferences or [])]:
+                intent_obj.dietary_preferences = (intent_obj.dietary_preferences or []) + [str(val)]
+                applied_memories.append(f"Dietary: {val}")
+
+        # Brand preferences from memory
+        if cat == "brand_preference":
+            brand_str = str(val)
+            if brand_str not in (intent_obj.preferred_brands or []):
+                intent_obj.preferred_brands = (intent_obj.preferred_brands or []) + [brand_str]
+                applied_memories.append(f"Preferred brand: {brand_str}")
+
+        # Budget from memory if none specified
+        if not intent_obj.budget and (key == "stated_target_budget" or key == "historical_average_order_spend"):
+            try:
+                amt = val.get("amount") or val.get("average_amount") if isinstance(val, dict) else val
+                if amt and float(amt) > 0:
+                    intent_obj.budget = Decimal(str(amt))
+                    applied_memories.append(f"Target budget: ₹{amt}")
+            except Exception:
+                pass
+
     # Re-verify missing fields
     missing = []
     if not intent_obj.family_size:
@@ -165,4 +209,5 @@ async def intent_extractor_node(state: AgentState) -> Dict[str, Any]:
 
     return {
         "shopping_intent": intent_obj.model_dump(mode="json"),
+        "applied_memories": applied_memories,
     }

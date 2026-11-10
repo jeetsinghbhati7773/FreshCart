@@ -69,6 +69,46 @@ const prisma = basePrisma.$extends({
         },
       },
     },
+    chatConversation: {
+      _id: {
+        needs: { id: true },
+        compute(c) {
+          return c.id;
+        },
+      },
+    },
+    chatMessage: {
+      _id: {
+        needs: { id: true },
+        compute(m) {
+          return m.id;
+        },
+      },
+    },
+    conversationSummary: {
+      _id: {
+        needs: { id: true },
+        compute(s) {
+          return s.id;
+        },
+      },
+    },
+    userMemory: {
+      _id: {
+        needs: { id: true },
+        compute(m) {
+          return m.id;
+        },
+      },
+    },
+    userMemorySetting: {
+      _id: {
+        needs: { id: true },
+        compute(s) {
+          return s.id;
+        },
+      },
+    },
   },
 });
 

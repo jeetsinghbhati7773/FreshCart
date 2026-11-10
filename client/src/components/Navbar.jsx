@@ -89,6 +89,19 @@ const Navbar = () => {
           </NavLink>
 
           <NavLink
+            to="/shopping-assistant"
+            className={({ isActive }) =>
+              `font-medium transition-colors duration-200 relative py-1 flex items-center gap-1 ${
+                isActive ? "text-emerald-600" : "text-gray-700 hover:text-emerald-600"
+              }`
+            }
+            onClick={() => setSearchQuery("")}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>AI Concierge</span>
+          </NavLink>
+
+          <NavLink
             to="/faq"
             className={({ isActive }) =>
               `font-medium transition-colors duration-200 relative py-1 ${
@@ -179,6 +192,18 @@ const Navbar = () => {
                   {user.email}
                 </li>
                 <li
+                  onClick={() => navigate("/shopping-assistant")}
+                  className="px-4 py-2.5 hover:bg-emerald-50 text-gray-700 cursor-pointer transition-colors font-medium flex items-center gap-2"
+                >
+                  <span>🤖</span> AI Concierge
+                </li>
+                <li
+                  onClick={() => navigate("/ai-memory")}
+                  className="px-4 py-2.5 hover:bg-emerald-50 text-gray-700 cursor-pointer transition-colors font-medium flex items-center gap-2"
+                >
+                  <span>🧠</span> My AI Memory
+                </li>
+                <li
                   onClick={goToOrders}
                   className="px-4 py-2.5 hover:bg-green-50 text-gray-700 cursor-pointer transition-colors font-medium flex items-center gap-2"
                 >
@@ -249,6 +274,28 @@ const Navbar = () => {
             >
               All Products
             </div>
+
+            <div
+              onClick={() => {
+                setOpen(false);
+                navigate("/shopping-assistant");
+              }}
+              className="w-full py-2.5 px-3 text-emerald-700 hover:bg-emerald-50 rounded-lg font-bold cursor-pointer flex items-center gap-2"
+            >
+              <span>🤖</span> AI Concierge
+            </div>
+
+            {user && (
+              <div
+                onClick={() => {
+                  setOpen(false);
+                  navigate("/ai-memory");
+                }}
+                className="w-full py-2.5 px-3 text-purple-700 hover:bg-purple-50 rounded-lg font-medium cursor-pointer flex items-center gap-2"
+              >
+                <span>🧠</span> My AI Memory
+              </div>
+            )}
 
             {user && (
               <div

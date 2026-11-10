@@ -27,6 +27,8 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import docsRoutes from "./routes/docsRoutes.js";
 import internalRoutes from "./routes/internalRoutes.js";
 import aiProxyRoutes from "./routes/aiProxyRoutes.js";
+import aiConversationRoutes from "./routes/aiConversationRoutes.js";
+import aiMemoryRoutes from "./routes/aiMemoryRoutes.js";
 import paypalRoutes from "./routes/paypalRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 
@@ -80,6 +82,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/docs", docsRoutes);
 app.use("/api/internal/ai", internalRoutes);
+app.use("/api/ai/conversations", aiConversationRoutes);
+app.use("/api/ai/memories", aiMemoryRoutes);
 app.use("/api/ai", aiProxyRoutes);
 app.use("/api/orders", OrderRoutes);
 app.use("/api/userAuth", authRoutes);

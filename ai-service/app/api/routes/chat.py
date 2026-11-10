@@ -46,6 +46,9 @@ async def chat_endpoint(payload: ChatRequest):
             "user_id": payload.user_id,
             "current_message": payload.message,
             "conversation_history": updated_history,
+            "user_memories": payload.user_memories or [],
+            "conversation_summary": payload.conversation_summary,
+            "applied_memories": [],
             "shopping_intent": existing_intent,
             "clarification_question": None,
             "grocery_items": [],
@@ -101,6 +104,7 @@ async def chat_endpoint(payload: ChatRequest):
             budget_difference=Decimal(str(result.get("budget_difference", 0.0))),
             optimized_cart=optimized_cart,
             assistant_message=final_msg,
+            message=final_msg,
         )
 
     except Exception as e:

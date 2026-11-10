@@ -38,9 +38,18 @@ export default function AiChatWidget() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
 
-  const { refreshBackendCart } = useContext(AppContext);
+  const { refreshBackendCart, user, setShowUserLogin } = useContext(AppContext);
   const navigate = useNavigate();
   const chatEndRef = useRef(null);
+
+  const handleToggleWidget = () => {
+    if (!user && !isOpen) {
+      toast("Please log in to use ShopPilot AI Assistant", { icon: "🔒" });
+      setShowUserLogin(true);
+      return;
+    }
+    setIsOpen(!isOpen);
+  };
 
   const [messages, setMessages] = useState([
     {
@@ -189,7 +198,7 @@ export default function AiChatWidget() {
 
         {/* Floating Circle Button */}
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggleWidget}
           aria-label="ShopPilot AI Assistant"
           className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-600 via-teal-600 to-green-500 text-white shadow-xl hover:shadow-emerald-500/30 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center relative group"
         >

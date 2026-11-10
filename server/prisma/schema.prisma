@@ -15,9 +15,14 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  orders    Order[]
-  messages  Message[]
-  carts     Cart[]
+  orders         Order[]
+  messages       Message[]
+  carts          Cart[]
+  conversations  ChatConversation[]
+  chatMessages   ChatMessage[]
+  summaries      ConversationSummary[]
+  memories       UserMemory[]
+  memorySettings UserMemorySetting?
 
   @@map("users")
 }
@@ -185,4 +190,92 @@ model Otp {
   createdAt DateTime @default(now())
 
   @@map("otps")
+}
+
+model ChatConversation {
+  id            String                @id @default(uuid())
+  userId        String                @map("user_id")
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String                @default("New Grocery Plan")
+  status        String                @default("active") // "active", "archived"
+  lastMessageAt DateTime              @default(now()) @map("last_message_at")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+
+  messages      ChatMessage[]
+  summaries     ConversationSummary[]
+
+  @@index([userId, status])
+  @@index([userId, lastMessageAt(sort: Desc)])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String           @id @default(uuid())
+  conversationId String           @map("conversation_id")
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String           @map("user_id")
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String           // "user", "assistant", "system", "tool"
+  content        String
+  messageType    String           @default("text") @map("message_type") // "text", "plan", "clarification"
+  metadata       Json?            // Stores grocery_plan, matched_products, optimized_cart breakdown
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  @@index([conversationId, createdAt(sort: Asc)])
+  @@index([userId])
+  @@map("chat_messages")
+}
+
+model ConversationSummary {
+  id                  String           @id @default(uuid())
+  conversationId      String           @map("conversation_id")
+  conversation        ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId              String           @map("user_id")
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  summary             String
+  coveredMessageCount Int              @default(0) @map("covered_message_count")
+  version             Int              @default(1)
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  @@index([conversationId])
+  @@index([userId])
+  @@map("conversation_summaries")
+}
+
+model UserMemory {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String    // "shopping_preference", "household_context", "brand_preference", "budget_preference", "dietary_preference"
+  memoryKey   String    @map("memory_key") // e.g. "preferred_milk_brand", "household_size", "weekly_budget"
+  memoryValue Json      @map("memory_value") // Structured value e.g. "Amul", 4, {"amount": 2500, "period": "weekly"}
+  description String    // Human-readable explanation: "User prefers Amul for dairy products"
+  sourceType  String    @map("source_type") // "conversation", "order_history", "user_confirmed"
+  sourceId    String?   @map("source_id") // ID of conversation or order
+  confidence  Float     @default(1.0)
+  importance  Float     @default(0.8)
+  status      String    @default("active") // "active", "superseded", "deleted"
+  embedding   Json?     // Vector embedding array (e.g. 384 floats)
+  lastUsedAt  DateTime? @map("last_used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, status, category])
+  @@index([userId, memoryKey])
+  @@map("user_memories")
+}
+
+model UserMemorySetting {
+  id               String   @id @default(uuid())
+  userId           String   @unique @map("user_id")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  autoExtract      Boolean  @default(true) @map("auto_extract")
+  includeInContext Boolean  @default(true) @map("include_in_context")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("user_memory_settings")
 }

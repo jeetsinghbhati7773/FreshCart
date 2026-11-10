@@ -10,6 +10,8 @@ class ChatRequest(BaseModel):
     conversation_id: str = Field(description="Unique session/conversation identifier")
     user_id: Optional[str] = Field(default=None, description="Optional authenticated user ID")
     message: str = Field(description="Natural language message from the customer")
+    user_memories: Optional[List[Dict[str, Any]]] = Field(default=None, description="User-specific long term memories")
+    conversation_summary: Optional[str] = Field(default=None, description="Compact historical summary")
 
 
 class PlanRequest(BaseModel):
@@ -30,4 +32,5 @@ class ChatResponse(BaseModel):
     budget_difference: Decimal = Field(default=Decimal("0.0"))
     optimized_cart: Optional[OptimizedCart] = None
     assistant_message: str
+    message: Optional[str] = None
 
