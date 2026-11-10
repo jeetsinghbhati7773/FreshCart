@@ -82,7 +82,7 @@ router.post("/chat", optionalAuth, async (req, res) => {
     console.error("AI Proxy Error:", error.message);
     return res.status(503).json({
       success: false,
-      message: "AI Shopping Assistant is currently unavailable. Ensure the AI microservice is running on port 8000.",
+      message: `AI Shopping Assistant is currently offline. The Python AI microservice is not running on port 8005. Please start it using 'npm run ai' or 'python -m uvicorn app.main:app --app-dir ai-service --port 8005'.`,
       error: error.message,
     });
   }

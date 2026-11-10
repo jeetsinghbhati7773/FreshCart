@@ -113,101 +113,107 @@ const MyOrders = () => {
         </div>
 
         {orders.length > 0 ? (
-          orders.map((order) => (
-            <div
-              key={order._id}
-              className="border-b border-gray-200 last:border-b-0"
-            >
-              <div className="grid grid-cols-12 gap-3 p-6 hover:bg-gray-50 transition-colors duration-150">
-                <div className="col-span-1 flex items-center justify-center text-sm text-gray-700 font-mono">
-                  #{order._id.slice(-6).toUpperCase()}
-                </div>
+          orders.map((order) => {
+            const orderKey = order.id || order._id || String(Math.random());
+            const orderShortId = (order.id || order._id || "ORDER0").slice(-6).toUpperCase();
+            const userName = order.user?.name || "Customer";
 
-                <div className="col-span-4 flex flex-col justify-center items-center space-y-2">
-                  {order.products.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="text-gray-900 font-medium text-center"
-                    >
-                      {item.product.name}
-                      {item.quantity > 1 && (
-                        <span className="ml-2 text-primary font-semibold">
-                          x{item.quantity}
-                        </span>
+            return (
+              <div
+                key={orderKey}
+                className="border-b border-gray-200 last:border-b-0"
+              >
+                <div className="grid grid-cols-12 gap-3 p-6 hover:bg-gray-50 transition-colors duration-150">
+                  <div className="col-span-1 flex items-center justify-center text-sm text-gray-700 font-mono">
+                    #{orderShortId}
+                  </div>
+
+                  <div className="col-span-4 flex flex-col justify-center items-center space-y-2">
+                    {(order.products || []).map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="text-gray-900 font-medium text-center"
+                      >
+                        {item.product?.name || item.productName || "Grocery Item"}
+                        {item.quantity > 1 && (
+                          <span className="ml-2 text-primary font-semibold">
+                            x{item.quantity}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="col-span-2 flex flex-col justify-center items-center">
+                    <p className="font-semibold text-gray-800 mb-1 text-center">
+                      {userName}
+                    </p>
+                    <p className="text-gray-600 text-sm leading-5 text-center">
+                      {order.shippingAddress}
+                    </p>
+                  </div>
+
+                  <div className="col-span-2 flex items-center justify-center">
+                    <p className="font-semibold text-gray-800">
+                      ₹{order.totalAmount || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="col-span-2 flex flex-col justify-center items-center text-sm space-y-1">
+                    <p className="text-gray-700 text-center flex items-center gap-1">
+                      <span className="font-medium">Method:</span>{" "}
+                      {order.paymentMethod === "PAYPAL" ? (
+                        <span className="font-bold text-[#003087]">PayPal</span>
+                      ) : (
+                        order.paymentMethod
                       )}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="col-span-2 flex flex-col justify-center items-center">
-                  <p className="font-semibold text-gray-800 mb-1 text-center">
-                    {order.user.name}
-                  </p>
-                  <p className="text-gray-600 text-sm leading-5 text-center">
-                    {order.shippingAddress}
-                  </p>
-                </div>
-
-                <div className="col-span-2 flex items-center justify-center">
-                  <p className="font-semibold text-gray-800">
-                    ₹{order.totalAmount || "N/A"}
-                  </p>
-                </div>
-
-                <div className="col-span-2 flex flex-col justify-center items-center text-sm space-y-1">
-                  <p className="text-gray-700 text-center flex items-center gap-1">
-                    <span className="font-medium">Method:</span>{" "}
-                    {order.paymentMethod === "PAYPAL" ? (
-                      <span className="font-bold text-[#003087]">PayPal</span>
-                    ) : (
-                      order.paymentMethod
+                    </p>
+                    <p className="text-gray-700 text-center">
+                      <span className="font-medium">Date:</span>{" "}
+                      {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                    </p>
+                    <p
+                      className={`text-center font-semibold text-xs px-2 py-0.5 rounded-full ${
+                        order.paymentStatus === "Paid" || order.paymentMethod === "Online"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : order.paymentStatus === "Cancelled" || order.paymentStatus === "Failed"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {order.paymentStatus || (order.paymentMethod === "Online" ? "Paid" : "Pending")}
+                    </p>
+                    {(order.paypalCaptureId || order.payments?.[0]?.providerCaptureId) && (
+                      <span className="text-[10px] font-mono text-gray-400 truncate max-w-[120px]" title={order.paypalCaptureId || order.payments?.[0]?.providerCaptureId}>
+                        Ref: {order.paypalCaptureId || order.payments?.[0]?.providerCaptureId}
+                      </span>
                     )}
-                  </p>
-                  <p className="text-gray-700 text-center">
-                    <span className="font-medium">Date:</span>{" "}
-                    {new Date(order.createdAt).toLocaleDateString("en-GB")}
-                  </p>
-                  <p
-                    className={`text-center font-semibold text-xs px-2 py-0.5 rounded-full ${
-                      order.paymentStatus === "Paid" || order.paymentMethod === "Online"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : order.paymentStatus === "Cancelled" || order.paymentStatus === "Failed"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {order.paymentStatus || (order.paymentMethod === "Online" ? "Paid" : "Pending")}
-                  </p>
-                  {(order.paypalCaptureId || order.payments?.[0]?.providerCaptureId) && (
-                    <span className="text-[10px] font-mono text-gray-400 truncate max-w-[120px]" title={order.paypalCaptureId || order.payments?.[0]?.providerCaptureId}>
-                      Ref: {order.paypalCaptureId || order.payments?.[0]?.providerCaptureId}
-                    </span>
-                  )}
+                  </div>
+
+                  <div className="col-span-1 flex items-center justify-center">
+                    <button
+                      onClick={() =>
+                        setVisibleTrack((prev) => ({
+                          ...prev,
+                          [orderKey]: !prev[orderKey],
+                        }))
+                      }
+                      className="px-3 py-1 text-sm bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200"
+                    >
+                      Track
+                    </button>
+                  </div>
                 </div>
 
-                <div className="col-span-1 flex items-center justify-center">
-                  <button
-                    onClick={() =>
-                      setVisibleTrack((prev) => ({
-                        ...prev,
-                        [order._id]: !prev[order._id],
-                      }))
-                    }
-                    className="px-3 py-1 text-sm bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200"
-                  >
-                    Track
-                  </button>
-                </div>
+                {/* Track progress row (under full width) */}
+                {visibleTrack[orderKey] && (
+                  <div className="flex align-center justify-center px-6 pb-6">
+                    {renderTracker(order.status, orderKey)}
+                  </div>
+                )}
               </div>
-
-              {/* Track progress row (under full width) */}
-              {visibleTrack[order._id] && (
-                <div className="flex align-center justify-center px-6 pb-6">
-                  {renderTracker(order.status, order._id)}
-                </div>
-              )}
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="p-8 text-center text-gray-500">
             You haven't placed any orders yet.
@@ -218,95 +224,96 @@ const MyOrders = () => {
       {/* Mobile View */}
       <div className="md:hidden space-y-4">
         {orders.length > 0 ? (
-          orders.map((order) => (
-            <div
-              key={order._id}
-              className="border border-gray-200 rounded-lg p-4 shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <div className="text-sm text-gray-700 font-mono">
-                  #{order._id.slice(-6).toUpperCase()}
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-800">
-                    ₹{order.totalAmount || "N/A"}
-                  </p>
-                  <p
-                    className={
-                      order.paymentMethod === "Online"
-                        ? "text-primary font-medium"
-                        : "text-red-500 font-medium"
-                    }
-                  >
-                    {order.paymentMethod === "Online" ? " Paid" : " Pending"}
-                  </p>
-                </div>
-              </div>
+          orders.map((order) => {
+            const orderKey = order.id || order._id || String(Math.random());
+            const orderShortId = (order.id || order._id || "ORDER0").slice(-6).toUpperCase();
+            const userName = order.user?.name || "Customer";
 
-              <div className="mb-3">
-                <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  Products
-                </h3>
-                <div className="space-y-1">
-                  {order.products.map((item, idx) => (
-                    <p key={idx} className="text-gray-900">
-                      • {item.product.name}
-                      {item.quantity > 1 && (
-                        <span className="ml-2 text-primary font-semibold">
-                          x{item.quantity}
-                        </span>
-                      )}
-                    </p>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <h3 className="text-sm font-medium text-gray-500 mb-1">
-                  Shipping
-                </h3>
-                <p className="font-semibold text-gray-800 text-sm">
-                  {order.user.name}
-                </p>
-                <p className="text-gray-600 text-sm">{order.shippingAddress}</p>
-              </div>
-
-              <div className="pt-2 border-t border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Payment:</span>
-                  <span className="text-gray-700 font-medium">
-                    {order.paymentMethod === "PAYPAL" ? "PayPal" : order.paymentMethod}
-                    <span className={`ml-2 text-xs px-2 py-0.5 rounded-full font-semibold ${
-                      order.paymentStatus === "Paid" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
-                    }`}>
-                      {order.paymentStatus || "Pending"}
-                    </span>
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Date:</span>
-                  <span className="text-gray-700">
-                    {new Date(order.createdAt).toLocaleDateString("en-GB")}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() =>
-                  setVisibleTrack((prev) => ({
-                    ...prev,
-                    [order._id]: !prev[order._id],
-                  }))
-                }
-                className="w-full mt-3 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200"
+            return (
+              <div
+                key={orderKey}
+                className="border border-gray-200 rounded-lg p-4 shadow-sm"
               >
-                {visibleTrack[order._id] ? "Hide Tracking" : "Track Order"}
-              </button>
+                <div className="flex justify-between items-start mb-3">
+                  <div className="text-sm text-gray-700 font-mono">
+                    #{orderShortId}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-800">
+                      ₹{order.totalAmount || "N/A"}
+                    </p>
+                    <p
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${
+                        order.paymentStatus === "Paid" || order.paymentMethod === "Online"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {order.paymentStatus || (order.paymentMethod === "Online" ? "Paid" : "Pending")}
+                    </p>
+                  </div>
+                </div>
 
-              {visibleTrack[order._id] &&
-                renderTracker(order.status, order._id)}
-            </div>
-          ))
+                <div className="mb-3">
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">
+                    Products
+                  </h3>
+                  <div className="space-y-1">
+                    {(order.products || []).map((item, idx) => (
+                      <p key={idx} className="text-gray-900 text-sm">
+                        • {item.product?.name || item.productName || "Grocery Item"}
+                        {item.quantity > 1 && (
+                          <span className="ml-2 text-primary font-semibold">
+                            x{item.quantity}
+                          </span>
+                        )}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <h3 className="text-sm font-medium text-gray-500 mb-1">
+                    Shipping
+                  </h3>
+                  <p className="font-semibold text-gray-800 text-sm">
+                    {userName}
+                  </p>
+                  <p className="text-gray-600 text-sm">{order.shippingAddress}</p>
+                </div>
+
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Payment:</span>
+                    <span className="text-gray-700 font-medium">
+                      {order.paymentMethod === "PAYPAL" ? "PayPal" : order.paymentMethod}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Date:</span>
+                    <span className="text-gray-700">
+                      {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() =>
+                    setVisibleTrack((prev) => ({
+                      ...prev,
+                      [orderKey]: !prev[orderKey],
+                    }))
+                  }
+                  className="w-full mt-3 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors duration-200"
+                >
+                  {visibleTrack[orderKey] ? "Hide Tracking" : "Track Order"}
+                </button>
+
+                {visibleTrack[orderKey] &&
+                  renderTracker(order.status, orderKey)}
+              </div>
+            );
+          })
         ) : (
           <div className="p-8 text-center text-gray-500">
             You haven't placed any orders yet.

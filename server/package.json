@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
+    "ai": "cd ../ai-service && .\\venv\\Scripts\\python.exe -m uvicorn app.main:app --app-dir . --port 8005",
     "build": "echo \"Error: no build specified\" && exit 1",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",

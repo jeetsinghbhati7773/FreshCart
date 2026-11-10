@@ -100,6 +100,13 @@ export const getMyOrders = async (req, res) => {
       where: { userId: req.user.id },
       orderBy: { createdAt: "desc" },
       include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         orderItems: {
           include: {
             product: true,
@@ -111,6 +118,7 @@ export const getMyOrders = async (req, res) => {
 
     const formattedOrders = orders.map((o) => ({
       ...o,
+      _id: o.id,
       products: o.orderItems.map((item) => ({
         product: item.product,
         quantity: item.quantity,
