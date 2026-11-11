@@ -34,18 +34,26 @@ export default function PayPalButton({
         if (!isMounted) return;
         setConfig(cfg);
 
-        // Check if paypal script already exists
+        const targetCurrency = cfg.currency || "USD";
+        const expectedSrcPattern = `currency=${targetCurrency}`;
+
+        // Check if paypal script already exists and matches target currency
         const existingScript = document.getElementById("paypal-sdk-script");
-        if (window.paypal && existingScript) {
-          setSdkReady(true);
-          setLoading(false);
-          return;
+        if (existingScript) {
+          if (existingScript.src && existingScript.src.includes(expectedSrcPattern) && window.paypal) {
+            setSdkReady(true);
+            setLoading(false);
+            return;
+          }
+          // Remove outdated script with mismatched currency (e.g. old INR script)
+          existingScript.remove();
+          delete window.paypal;
         }
 
-        // Dynamically load PayPal SDK
+        // Dynamically load fresh PayPal SDK with target currency
         const script = document.createElement("script");
         script.id = "paypal-sdk-script";
-        script.src = `https://www.paypal.com/sdk/js?client-id=${cfg.clientId}&currency=${cfg.currency}&intent=capture`;
+        script.src = `https://www.paypal.com/sdk/js?client-id=${cfg.clientId}&currency=${targetCurrency}&intent=capture`;
         script.async = true;
 
         script.onload = () => {
@@ -220,6 +228,16 @@ export default function PayPalButton({
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-amber-900 text-xs space-y-1">
+            <p className="font-semibold flex items-center gap-1 text-amber-800">
+              <span>💡</span>
+              <span>PayPal Sandbox Testing Tip</span>
+            </p>
+            <p className="text-[11px] text-amber-700 leading-relaxed">
+              If you updated settings, please press <strong className="font-mono bg-amber-100/80 px-1 py-0.5 rounded">Ctrl + Shift + R</strong> to clear cached scripts. In the PayPal popup, log in with your <strong>Sandbox Personal (Buyer)</strong> account from developer.paypal.com.
+            </p>
+          </div>
+
           {/* Official PayPal Buttons Container */}
           <div
             ref={paypalContainerRef}
