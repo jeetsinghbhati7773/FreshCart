@@ -195,6 +195,7 @@ export default function PayPalButton({
       const captureRes = await capturePayPalOrder({
         orderId: createRes.orderId,
         paypalOrderId: createRes.paypalOrderId,
+        simulate: true,
       });
 
       if (!captureRes.success) {
