@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import axios from "../utils/axiosInstance";
 import { API_URL } from "../config";
+import { useAppContext } from "../context/AppContext";
 
 const MyOrders = () => {
+  const { user, setShowUserLogin } = useAppContext();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [visibleTrack, setVisibleTrack] = useState({});
@@ -16,12 +18,18 @@ const MyOrders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await axios.get(
           `${API_URL}/orders/my`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -34,15 +42,13 @@ const MyOrders = () => {
     };
 
     fetchOrders();
-  }, []);
-
-  if (loading) return <p className="text-gray-600 p-4">Loading...</p>;
+  }, [user]);
 
   const renderTracker = (status, orderId) => {
     const currentIndex = statuses.indexOf(status);
 
     return (
-      <div className="mt-4 animate-fadeIn">
+      <div className="mt-4 animate-fade-in">
         <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm lg:text-base font-medium">
           {statuses.map((step, idx) => (
             <div key={step} className="flex items-center gap-2">
@@ -83,6 +89,36 @@ const MyOrders = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen mt-24 bg-white px-4 py-12 flex flex-col items-center justify-center">
+        <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-gray-600 font-medium text-sm">Loading your orders...</p>
+      </div>
+    );
+  }
+
+  const token = localStorage.getItem("token");
+  if (!user && !token) {
+    return (
+      <div className="min-h-screen mt-24 bg-white px-4 py-16 flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 mb-4 text-3xl">
+          📦
+        </div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Please Sign In</h2>
+        <p className="text-gray-500 text-sm max-w-sm mb-6">
+          You need to be logged in to view your order history and tracking updates.
+        </p>
+        <button
+          onClick={() => setShowUserLogin(true)}
+          className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-full shadow transition hover:scale-105"
+        >
+          Login to Your Account
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen mt-20 bg-white px-4 py-6 sm:px-6 lg:px-8">
       <h1 className="text-2xl sm:text-3xl font-bold text-primary-dull mb-6">
@@ -118,6 +154,11 @@ const MyOrders = () => {
             const orderShortId = (order.id || order._id || "ORDER0").slice(-6).toUpperCase();
             const userName = order.user?.name || "Customer";
 
+            const displayAddress =
+              typeof order.shippingAddress === "object" && order.shippingAddress !== null
+                ? `${order.shippingAddress.name || ""} ${order.shippingAddress.address || ""} ${order.shippingAddress.city || ""}`
+                : String(order.shippingAddress || "Default Delivery Address");
+
             return (
               <div
                 key={orderKey}
@@ -149,7 +190,7 @@ const MyOrders = () => {
                       {userName}
                     </p>
                     <p className="text-gray-600 text-sm leading-5 text-center">
-                      {order.shippingAddress}
+                      {displayAddress}
                     </p>
                   </div>
 
@@ -229,6 +270,11 @@ const MyOrders = () => {
             const orderShortId = (order.id || order._id || "ORDER0").slice(-6).toUpperCase();
             const userName = order.user?.name || "Customer";
 
+            const displayAddress =
+              typeof order.shippingAddress === "object" && order.shippingAddress !== null
+                ? `${order.shippingAddress.name || ""} ${order.shippingAddress.address || ""} ${order.shippingAddress.city || ""}`
+                : String(order.shippingAddress || "Default Delivery Address");
+
             return (
               <div
                 key={orderKey}
@@ -279,7 +325,7 @@ const MyOrders = () => {
                   <p className="font-semibold text-gray-800 text-sm">
                     {userName}
                   </p>
-                  <p className="text-gray-600 text-sm">{order.shippingAddress}</p>
+                  <p className="text-gray-600 text-sm">{displayAddress}</p>
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
@@ -320,23 +366,6 @@ const MyOrders = () => {
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

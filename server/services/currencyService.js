@@ -31,17 +31,12 @@ export class CurrencyService {
       throw new Error(`Invalid INR amount provided for conversion: ${inrAmount}`);
     }
 
-    const normTarget = targetCurrency.toUpperCase();
+    let normTarget = targetCurrency.toUpperCase();
 
+    // PayPal REST API does NOT support INR as a transaction currency.
+    // If INR is configured or requested, safely convert to USD so PayPal never rejects the order.
     if (normTarget === "INR") {
-      return {
-        originalAmount: numericInr,
-        originalCurrency: "INR",
-        convertedAmount: numericInr,
-        targetCurrency: "INR",
-        exchangeRate: 1.0,
-        formattedPayPalAmount: numericInr.toFixed(2),
-      };
+      normTarget = "USD";
     }
 
     const rate = DEFAULT_INR_TO_USD_RATE;

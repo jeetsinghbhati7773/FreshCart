@@ -15,10 +15,12 @@ export const paypalController = {
    */
   async getConfig(req, res) {
     try {
+      const configuredCurrency = (process.env.PAYPAL_CURRENCY || "USD").toUpperCase();
+      const currency = configuredCurrency === "INR" ? "USD" : configuredCurrency;
       return res.json({
         success: true,
         clientId: process.env.PAYPAL_CLIENT_ID || "test_client_id",
-        currency: process.env.PAYPAL_CURRENCY || "USD",
+        currency,
         exchangeRate: parseFloat(process.env.EXCHANGE_RATE_INR_TO_USD || "0.0116"),
         environment: process.env.PAYPAL_ENVIRONMENT || "sandbox",
       });
@@ -184,10 +186,11 @@ export const paypalController = {
         items: verifiedItems,
       });
     } catch (error) {
-      console.error("PayPal Create Order Error:", error);
+      console.error("PayPal Create Order Error:", error.message, JSON.stringify(error.details || {}));
       return res.status(500).json({
         success: false,
         message: error.message || "Failed to create PayPal order",
+        details: error.details,
       });
     }
   },

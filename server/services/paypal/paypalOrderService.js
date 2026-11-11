@@ -50,14 +50,12 @@ export class PayPalOrderService {
       };
     });
 
-    // Handle any round-off difference on the first item to ensure exact breakdown match
-    const diff = Math.round((Number(totalValueStr) - computedItemTotal) * 100) / 100;
-    if (diff !== 0 && paypalItems.length > 0) {
-      const currentUnit = parseFloat(paypalItems[0].unit_amount.value);
-      const adjustedUnit = Math.max(0.01, currentUnit + diff / parseInt(paypalItems[0].quantity, 10));
-      paypalItems[0].unit_amount.value = adjustedUnit.toFixed(2);
-      computedItemTotal = Number(totalValueStr);
-    }
+    // Calculate exact sum of items to avoid any rounding mismatch
+    const exactItemTotal = paypalItems.reduce(
+      (sum, item) => sum + (parseFloat(item.unit_amount.value) * parseInt(item.quantity, 10)),
+      0
+    );
+    const finalAmountStr = exactItemTotal > 0 ? exactItemTotal.toFixed(2) : totalValueStr;
 
     const payload = {
       intent: "CAPTURE",
@@ -68,11 +66,11 @@ export class PayPalOrderService {
           description: `FreshCart Order #${localOrderId.slice(0, 8)}`,
           amount: {
             currency_code: currencyCode,
-            value: totalValueStr,
+            value: finalAmountStr,
             breakdown: {
               item_total: {
                 currency_code: currencyCode,
-                value: totalValueStr,
+                value: finalAmountStr,
               },
             },
           },
