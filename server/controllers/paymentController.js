@@ -1,12 +1,30 @@
 import Razorpay from "razorpay";
 
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_SECRET,
-});
+/**
+ * Lazily return a configured Razorpay client, or null if credentials are absent.
+ */
+function getRazorpayClient() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_SECRET;
+  if (!keyId || !keySecret) {
+    return null;
+  }
+  return new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
+  });
+}
 
 export const createRazorpayOrder = async (req, res) => {
   try {
+    const razorpayInstance = getRazorpayClient();
+    if (!razorpayInstance) {
+      return res.status(503).json({
+        success: false,
+        message: "Razorpay is not configured on this server.",
+      });
+    }
+
     const { totalAmount } = req.body;
     const options = {
       amount: totalAmount * 100, // ₹ to paisa
