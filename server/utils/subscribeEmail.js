@@ -1,15 +1,4 @@
-import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+import { deliverEmail } from "./sendEmail.js";
 
 export const sendSubscriptionEmail = async (to) => {
   const subject = "🎉 Thanks for Subscribing to Hitman Grocery!";
@@ -65,13 +54,12 @@ export const sendSubscriptionEmail = async (to) => {
   </html>`;
 
   try {
-    const info = await transporter.sendMail({
-      from: `"Hitman Grocery" <${process.env.EMAIL}>`,
+    return await deliverEmail({
       to,
       subject,
       html,
+      fromName: "Hitman Grocery",
     });
-    return { success: true, messageId: info.messageId };
   } catch (err) {
     console.error("❌ Subscription email failed:", err.message);
     throw new Error("Failed to send subscription email.");
