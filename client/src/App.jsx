@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import { Toaster } from "react-hot-toast";
 import Footer from "./components/Footer";
 import { useAppContext } from "./context/AppContext";
-// import Login from "./components/Login";
+import Login from "./components/Login";
 import AllProducts from "./pages/AllProducts";
 import ProductCategory from "./pages/ProductCategory";
 import ProductDetail from "./pages/ProductDetails";
@@ -35,8 +35,7 @@ const App = () => {
             : "px-4 sm:px-8 md:px-12 lg:px-20 xl:px-28 2xl:px-32"
         }`}
       >
-        {/* Login functionality disabled */}
-        {/* {showUserLogin ? <Login /> : null} */}
+        {showUserLogin ? <Login /> : null}
         {showAddressModal && <AddAddressModal />}
 
         <Routes>

@@ -19,22 +19,19 @@ const MyOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       const token = localStorage.getItem("token");
-      // Login disabled: allow fetching guest orders without requiring token
-      // if (!token) {
-      //   setLoading(false);
-      //   return;
-      // }
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const res = await axios.get(
           `${API_URL}/orders/my`,
-          token
-            ? {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              }
-            : {}
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
         setOrders(res.data.orders || []);
       } catch (err) {
@@ -101,11 +98,26 @@ const MyOrders = () => {
     );
   }
 
-  // Login disabled: show orders directly without sign-in gate
-  // const token = localStorage.getItem("token");
-  // if (!user && !token) {
-  //   return ( ... Login to Your Account ... );
-  // }
+  const token = localStorage.getItem("token");
+  if (!user && !token) {
+    return (
+      <div className="min-h-screen mt-24 bg-white px-4 py-16 flex flex-col items-center justify-center text-center">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 mb-4 text-3xl">
+          📦
+        </div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Please Sign In</h2>
+        <p className="text-gray-500 text-sm max-w-sm mb-6">
+          You need to be logged in to view your order history and tracking updates.
+        </p>
+        <button
+          onClick={() => setShowUserLogin(true)}
+          className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-full shadow transition hover:scale-105"
+        >
+          Login to Your Account
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen mt-20 bg-white px-4 py-6 sm:px-6 lg:px-8">

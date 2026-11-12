@@ -466,9 +466,8 @@ const ShoppingAssistant = () => {
                     .fetchConversations({ status: "active", search: searchQuery })
                     .then((res) => setConversations(res.conversations || []));
                 }}
-                className={`flex-1 py-1 rounded-lg transition-all ${
-                  conversationTab === "active" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                }`}
+                className={`flex-1 py-1 rounded-lg transition-all ${conversationTab === "active" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  }`}
               >
                 Recent
               </button>
@@ -479,9 +478,8 @@ const ShoppingAssistant = () => {
                     .fetchConversations({ status: "archived", search: searchQuery })
                     .then((res) => setConversations(res.conversations || []));
                 }}
-                className={`flex-1 py-1 rounded-lg transition-all ${
-                  conversationTab === "archived" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                }`}
+                className={`flex-1 py-1 rounded-lg transition-all ${conversationTab === "archived" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  }`}
               >
                 Archived
               </button>
@@ -504,17 +502,15 @@ const ShoppingAssistant = () => {
                     <div
                       key={conv.id}
                       onClick={() => !isRenaming && selectConversation(conv.id)}
-                      className={`group relative flex items-center justify-between p-2.5 rounded-xl text-xs cursor-pointer transition-all ${
-                        isActive
+                      className={`group relative flex items-center justify-between p-2.5 rounded-xl text-xs cursor-pointer transition-all ${isActive
                           ? "bg-emerald-50/90 text-emerald-950 font-bold border border-emerald-200/80"
                           : "text-gray-700 hover:bg-gray-50 border border-transparent"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2 overflow-hidden flex-1 mr-2">
                         <MessageSquare
-                          className={`w-3.5 h-3.5 flex-shrink-0 ${
-                            isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-600"
-                          }`}
+                          className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-gray-600"
+                            }`}
                         />
                         {isRenaming ? (
                           <input
