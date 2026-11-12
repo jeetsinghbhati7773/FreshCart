@@ -84,11 +84,9 @@ const ShoppingAssistant = () => {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Load conversations when user is logged in
+  // Load conversations (guest fallback supported when login is disabled)
   useEffect(() => {
-    if (user) {
-      loadConversations();
-    }
+    loadConversations();
   }, [user]);
 
   const loadConversations = async (targetActiveId = null) => {
@@ -209,10 +207,11 @@ const ShoppingAssistant = () => {
   };
 
   const handleSendMessage = async (userText) => {
-    if (!user) {
-      setShowUserLogin(true);
-      return;
-    }
+    // Login disabled: allow guest conversations without login modal
+    // if (!user) {
+    //   setShowUserLogin(true);
+    //   return;
+    // }
 
     let convId = activeConversationId;
     if (!convId) {
@@ -384,31 +383,10 @@ const ShoppingAssistant = () => {
     optimizedCart || intent || groceryPlan.length > 0 || matchedProducts.length > 0
   );
 
-  // Authentication Gate: Guests cannot access persistent assistant
-  if (!user) {
-    return (
-      <div className="pt-28 pb-16 min-h-[75vh] flex items-center justify-center">
-        <div className="max-w-md w-full bg-white border border-gray-200 rounded-3xl p-8 text-center shadow-lg">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-            Sign In to ShopPilot
-          </h2>
-          <p className="text-sm text-gray-500 mt-2 mb-6">
-            Access persistent grocery conversations, multi-chat planning sessions, and personalized shopping memory backed by real FreshCart inventory.
-          </p>
-          <button
-            onClick={() => setShowUserLogin(true)}
-            className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
-            <span>Log In to Continue</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Authentication Gate commented out while login is disabled
+  // if (!user) {
+  //   return ( ... Sign In to ShopPilot ... );
+  // }
 
   return (
     <div className="pt-20 pb-12 min-h-screen">

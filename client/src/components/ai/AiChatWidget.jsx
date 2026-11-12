@@ -43,11 +43,12 @@ export default function AiChatWidget() {
   const chatEndRef = useRef(null);
 
   const handleToggleWidget = () => {
-    if (!user && !isOpen) {
-      toast("Please log in to use ShopPilot AI Assistant", { icon: "🔒" });
-      setShowUserLogin(true);
-      return;
-    }
+    // Login disabled: allow guests to open ShopPilot AI Assistant directly
+    // if (!user && !isOpen) {
+    //   toast("Please log in to use ShopPilot AI Assistant", { icon: "🔒" });
+    //   setShowUserLogin(true);
+    //   return;
+    // }
     setIsOpen(!isOpen);
   };
 

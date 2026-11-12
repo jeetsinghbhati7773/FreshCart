@@ -166,7 +166,19 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Auth Button / Profile Menu */}
+          <NavLink
+            to="/myorders"
+            className={({ isActive }) =>
+              `font-medium transition-colors duration-200 relative py-1 ${
+                isActive ? "text-green-600" : "text-gray-700 hover:text-green-600"
+              }`
+            }
+            onClick={() => setSearchQuery("")}
+          >
+            My Orders
+          </NavLink>
+
+          {/* Auth Button / Profile Menu (commented out while login is disabled)
           {!user ? (
             <button
               onClick={() => setShowUserLogin(true)}
@@ -212,6 +224,7 @@ const Navbar = () => {
               </ul>
             </div>
           )}
+          */}
         </div>
 
         {/* Mobile Header Controls */}
@@ -279,17 +292,15 @@ const Navbar = () => {
               <span>🤖</span> AI Concierge
             </div>
 
-            {user && (
-              <div
-                onClick={() => {
-                  setOpen(false);
-                  goToOrders();
-                }}
-                className="w-full py-2.5 px-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium cursor-pointer"
-              >
-                My Orders
-              </div>
-            )}
+            <div
+              onClick={() => {
+                setOpen(false);
+                goToOrders();
+              }}
+              className="w-full py-2.5 px-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium cursor-pointer"
+            >
+              My Orders
+            </div>
 
             <NavLink
               to="/faq"
@@ -307,6 +318,7 @@ const Navbar = () => {
               Seller Portal
             </NavLink>
 
+            {/* Mobile Auth button commented out while login is disabled
             <div className="w-full border-t border-gray-100 mt-2 pt-3">
               {!user ? (
                 <button
@@ -330,6 +342,7 @@ const Navbar = () => {
                 </button>
               )}
             </div>
+            */}
           </div>
         )}
       </nav>

@@ -34,13 +34,19 @@ const Cart = () => {
   const finalAmount = cartSummary?.totalAmount || totalPrice + gst;
   const savings = cartSummary?.savings || 0;
 
+  const getAuthConfig = () => {
+    const token = localStorage.getItem("token");
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  };
+
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
       return toast.error("Please select or add a delivery address");
     }
-    if (!user) {
-      return setShowUserLogin(true);
-    }
+    // Login disabled: allow guest checkout without prompting login modal
+    // if (!user) {
+    //   return setShowUserLogin(true);
+    // }
     if (cartItems.length === 0) {
       return toast.error("Your cart is empty");
     }
@@ -59,11 +65,7 @@ const Cart = () => {
             shippingAddress: selectedAddress,
             paymentMethod: "COD",
           },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
+          getAuthConfig()
         );
 
         await clearCart();
@@ -100,11 +102,7 @@ const Cart = () => {
         const res = await axios.post(
           `${API_URL}/payment/razorpay`,
           { totalAmount: finalAmount },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
+          getAuthConfig()
         );
 
         const { order } = res.data;
@@ -128,11 +126,7 @@ const Cart = () => {
                   shippingAddress: selectedAddress,
                   paymentMethod: "Online",
                 },
-                {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                  },
-                }
+                getAuthConfig()
               );
 
               await clearCart();
@@ -147,8 +141,8 @@ const Cart = () => {
             }
           },
           prefill: {
-            name: user.name,
-            email: user.email,
+            name: user?.name || "FreshCart Guest",
+            email: user?.email || "guest@freshcart.local",
           },
           theme: {
             color: "#16a34a",
@@ -426,25 +420,22 @@ const Cart = () => {
                   itemsCount={cartItems.length}
                 />
 
-                {user ? (
-                  <PayPalButton
-                    shippingAddress={selectedAddress}
-                    onSuccess={() => {
-                      clearCart();
-                      toast.success("🎉 Payment verified and order confirmed!");
-                    }}
-                    onError={(err) => {
-                      toast.error(typeof err === "string" ? err : "PayPal transaction could not be completed.");
-                    }}
-                  />
-                ) : (
-                  <button
-                    onClick={() => setShowUserLogin(true)}
-                    className="w-full py-4 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-2xl shadow-lg transition-all cursor-pointer"
-                  >
-                    Login to Pay with PayPal
-                  </button>
-                )}
+                {/* Login gate commented out: direct PayPal Checkout */}
+                <PayPalButton
+                  shippingAddress={selectedAddress}
+                  directItems={cartItems.map((item) => ({
+                    productId: item._id || item.id,
+                    quantity: item.quantity,
+                  }))}
+                  onSuccess={() => {
+                    clearCart();
+                    toast.success("🎉 Payment verified and order confirmed!");
+                  }}
+                  onError={(err) => {
+                    toast.error(typeof err === "string" ? err : "PayPal transaction could not be completed.");
+                  }}
+                />
+                {/* {!user && <button onClick={() => setShowUserLogin(true)}>Login to Pay with PayPal</button>} */}
               </div>
             ) : (
               <>
@@ -480,25 +471,17 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* Place Order Button */}
-                {user ? (
-                  <button
-                    disabled={isSubmitting}
-                    onClick={handlePlaceOrder}
-                    className="w-full mt-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-green-600/30 hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-50"
-                  >
-                    {isSubmitting
-                      ? "Processing Order..."
-                      : `Confirm & Place Order (₹${finalAmount})`}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowUserLogin(true)}
-                    className="w-full mt-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-2xl shadow-lg transition-all cursor-pointer"
-                  >
-                    Login to Checkout
-                  </button>
-                )}
+                {/* Place Order Button (login gate commented out for guest checkout) */}
+                <button
+                  disabled={isSubmitting}
+                  onClick={handlePlaceOrder}
+                  className="w-full mt-6 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-green-600/30 hover:shadow-xl transition-all duration-200 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmitting
+                    ? "Processing Order..."
+                    : `Confirm & Place Order (₹${finalAmount})`}
+                </button>
+                {/* {!user && <button onClick={() => setShowUserLogin(true)}>Login to Checkout</button>} */}
               </>
             )}
           </div>
