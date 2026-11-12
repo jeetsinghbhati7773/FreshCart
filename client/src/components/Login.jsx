@@ -15,12 +15,6 @@ const Login = () => {
     confirmPassword: "",
   });
 
-  // OTP related
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [loadingOtp, setLoadingOtp] = useState(false);
-  const [countdown, setCountdown] = useState(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,74 +22,12 @@ const Login = () => {
     return () => (document.body.style.overflow = "");
   }, []);
 
-  useEffect(() => {
-    let interval;
-    if (countdown > 0) {
-      interval = setInterval(() => setCountdown((prev) => prev - 1), 1000);
-    }
-    return () => clearInterval(interval);
-  }, [countdown]);
-
-  const resetOtpState = () => {
-    setOtpSent(false);
-    setOtpVerified(false);
-    setOtp("");
-    setCountdown(0);
-  };
-
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (field === "email" && (otpSent || otpVerified)) {
-      resetOtpState();
-    }
-  };
-
-  const handleSendOtp = async () => {
-    if (!formData.email) return toast.error("Enter email first");
-
-    try {
-      setLoadingOtp(true);
-      const res = await axios.post(
-        `${API_URL}/otp/send`,
-        { email: formData.email }
-      );
-      toast.success(res.data.message);
-      setOtpSent(true);
-      setCountdown(30);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to send OTP");
-    } finally {
-      setLoadingOtp(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp) return toast.error("Enter OTP first");
-
-    try {
-      setLoadingOtp(true);
-      const res = await axios.post(
-        `${API_URL}/otp/verify`,
-        {
-          email: formData.email,
-          otp,
-        }
-      );
-      toast.success(res.data.message);
-      setOtpVerified(true);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Invalid OTP");
-    } finally {
-      setLoadingOtp(false);
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!otpVerified && currentView !== "login") {
-      return toast.error("Please verify your email via OTP first");
-    }
 
     if (currentView === "forgot") {
       if (formData.newPassword !== formData.confirmPassword) {
@@ -171,7 +103,6 @@ const Login = () => {
       newPassword: "",
       confirmPassword: "",
     });
-    resetOtpState();
   };
 
   const switchView = (view) => {
@@ -244,80 +175,14 @@ const Login = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
             </label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                className="w-full sm:flex-1 px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
-                placeholder="Enter your email"
-                required
-              />
-              {currentView !== "login" && !otpSent && (
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={loadingOtp || countdown > 0 || !formData.email}
-                  className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap w-full sm:w-auto ${
-                    loadingOtp || countdown > 0 || !formData.email
-                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                      : "bg-primary text-white hover:bg-primary-dark shadow-md hover:shadow-lg"
-                  }`}
-                >
-                  {loadingOtp ? "Sending..." : "Send OTP"}
-                </button>
-              )}
-            </div>
-
-            {/* OTP Section for register and forgot password */}
-            {currentView !== "login" && otpSent && !otpVerified && (
-              <div className="mt-3 space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    maxLength="6"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="Enter 6-digit code"
-                    className="flex-1 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-center text-base font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    disabled={loadingOtp || !otp}
-                    className={`px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap ${
-                      loadingOtp || !otp
-                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                        : "bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-lg"
-                    }`}
-                  >
-                    {loadingOtp ? "Verifying..." : "Verify"}
-                  </button>
-                </div>
-                {countdown > 0 && (
-                  <p className="text-xs text-gray-500 text-right">
-                    Resend available in {countdown}s
-                  </p>
-                )}
-              </div>
-            )}
-
-            {otpVerified && (
-              <div className="mt-2 flex items-center gap-2 text-green-600 bg-green-50 p-2 rounded-lg text-sm">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Email verified successfully!</span>
-              </div>
-            )}
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+              placeholder="Enter your email"
+              required
+            />
           </div>
 
           {/* Password fields */}
@@ -362,7 +227,7 @@ const Login = () => {
             </div>
           )}
 
-          {currentView === "forgot" && otpVerified && (
+          {currentView === "forgot" && (
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -400,12 +265,8 @@ const Login = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading || (currentView !== "login" && !otpVerified)}
-            className={`w-full py-2.5 rounded-lg font-medium transition-all duration-200 mt-4 ${
-              loading || (currentView !== "login" && !otpVerified)
-                ? "bg-primary text-white hover:bg-primary-dark shadow-md hover:shadow-lg cursor-pointer"
-                : "bg-primary text-white hover:bg-primary-dark shadow-md hover:shadow-lg"
-            }`}
+            disabled={loading}
+            className="w-full py-2.5 rounded-lg font-medium transition-all duration-200 mt-4 bg-primary text-white hover:bg-primary-dark shadow-md hover:shadow-lg cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">

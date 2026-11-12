@@ -1,14 +1,14 @@
 import { deliverEmail } from "./sendEmail.js";
 
 export const sendSubscriptionEmail = async (to) => {
-  const subject = "🎉 Thanks for Subscribing to Hitman Grocery!";
+  const subject = "🎉 Thanks for Subscribing to ShopPilot!";
   const html = `
   <!DOCTYPE html>
   <html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Hitman Grocery</title>
+    <title>Welcome to ShopPilot</title>
     <style>
       @media only screen and (max-width: 600px) {
         .email-container { padding: 15px !important; }
@@ -25,7 +25,7 @@ export const sendSubscriptionEmail = async (to) => {
       <div class="email-content" style="max-width: 500px; margin: auto; background: #fff; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
         
         <!-- Logo -->
-        <img src="https://res.cloudinary.com/dblgvmpxc/image/upload/v1752353442/hitman.grocery.logo_on12wc.png" alt="Hitman Grocery" class="email-logo" style="width: 160px; max-width: 80%; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
+        <img src="https://res.cloudinary.com/dblgvmpxc/image/upload/v1752353442/hitman.grocery.logo_on12wc.png" alt="ShopPilot" class="email-logo" style="width: 160px; max-width: 80%; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
         
         <!-- Main Message -->
         <h2 class="email-title" style="color: #1e293b; font-size: 22px; font-weight: 600; margin: 0 0 15px 0; line-height: 1.3;">
@@ -37,14 +37,14 @@ export const sendSubscriptionEmail = async (to) => {
         </p>
         
         <!-- CTA Button -->
-        <a href="https://hitman-grocery.vercel.app" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #44ae7c 0%, #11e783ff 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-bottom: 30px; min-width: 140px; text-align: center;">
+        <a href="${process.env.FRONTEND_URL || "https://freshcart-bcug.onrender.com"}" class="email-button" style="display: inline-block; background: linear-gradient(135deg, #44ae7c 0%, #11e783ff 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-bottom: 30px; min-width: 140px; text-align: center;">
           Start Shopping
         </a>
         
         <!-- Footer -->
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;" />
         <p style="font-size: 12px; color: #94a3b8; margin: 0; line-height: 1.4;">
-          This email was sent to ${to} by <strong>Hitman Grocery</strong><br>
+          This email was sent to ${to} by <strong>ShopPilot</strong><br>
           <a href="#" style="color: #44ae7c; text-decoration: none;">Unsubscribe</a> | Please do not reply to this email.
         </p>
         
@@ -58,7 +58,7 @@ export const sendSubscriptionEmail = async (to) => {
       to,
       subject,
       html,
-      fromName: "Hitman Grocery",
+      fromName: "ShopPilot",
     });
   } catch (err) {
     console.error("❌ Subscription email failed:", err.message);

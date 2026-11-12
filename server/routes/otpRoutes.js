@@ -47,7 +47,7 @@ router.post("/send", async (req, res) => {
     });
 
     // Send email
-    await sendEmail(email, "Hitman Grocery OTP", `Your OTP is ${otp}`);
+    await sendEmail(email, "ShopPilot OTP", `Your OTP is ${otp}`);
 
     res.status(200).json({
       success: true,

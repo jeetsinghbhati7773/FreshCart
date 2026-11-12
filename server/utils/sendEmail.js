@@ -9,7 +9,7 @@ const DEFAULT_SOCKET_TIMEOUT_MS = 15000;
 /**
  * Resolve the sender address from environment configuration.
  */
-function resolveSender(fromName = "Hitman Grocery") {
+function resolveSender(fromName = "ShopPilot") {
   const email = (process.env.EMAIL_FROM || process.env.SMTP_USER || process.env.EMAIL || "").trim();
   return { email, name: fromName };
 }
@@ -154,7 +154,7 @@ async function sendViaSmtp({ fromEmail, fromName, to, subject, text, html }) {
 /**
  * Shared email dispatcher choosing HTTPS API providers first (port 443) and falling back to SMTP.
  */
-export const deliverEmail = async ({ to, subject, text, html, fromName = "Hitman Grocery" }) => {
+export const deliverEmail = async ({ to, subject, text, html, fromName = "ShopPilot" }) => {
   const { email: fromEmail } = resolveSender(fromName);
   const payload = { fromEmail, fromName, to, subject, text, html };
 
@@ -186,13 +186,13 @@ export const sendEmail = async (to, subject, text) => {
   </div>
   <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
   <p style="font-size: 12px; text-align: center; color: #aaa;">
-    This is an automated message from <strong>Hitman Grocery</strong>.<br/>
+    This is an automated message from <strong>ShopPilot</strong>.<br/>
     Please don’t reply directly to this email.
   </p>
 </div>
       `;
 
-    return await deliverEmail({ to, subject, text, html, fromName: "Hitman Grocery" });
+    return await deliverEmail({ to, subject, text, html, fromName: "ShopPilot" });
   } catch (error) {
     console.error("❌ Email sending failed:", error);
     throw new Error("Failed to send email: " + error.message);
