@@ -59,12 +59,13 @@ const UserChat = () => {
             withCredentials: true,
           }
         );
-        setSenderId(res.data._id);
-        senderIdRef.current = res.data._id;
+        const uid = res.data?._id || res.data?.id;
+        setSenderId(uid);
+        senderIdRef.current = uid;
 
         // Join user's room if socket is connected
-        if (socket.connected) {
-          socket.emit("join", res.data._id);
+        if (socket.connected && uid) {
+          socket.emit("join", uid);
         }
       } catch (err) {
         console.error("❌ Failed to fetch user", err);

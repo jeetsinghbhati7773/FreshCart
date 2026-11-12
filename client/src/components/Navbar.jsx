@@ -114,7 +114,8 @@ const Navbar = () => {
           </NavLink>
 
           <NavLink
-            to="/seller-login"
+            // to="/seller-login"
+            to="/seller"
             className={({ isActive }) =>
               `font-medium transition-colors duration-200 relative py-1 ${
                 isActive ? "text-green-600" : "text-gray-700 hover:text-green-600"
@@ -300,7 +301,8 @@ const Navbar = () => {
             </NavLink>
 
             <NavLink
-              to="/seller-login"
+              // to="/seller-login"
+              to="/seller"
               onClick={() => setOpen(false)}
               className="w-full py-2.5 px-3 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg font-medium"
             >

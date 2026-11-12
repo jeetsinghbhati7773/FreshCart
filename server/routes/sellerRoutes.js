@@ -22,10 +22,10 @@ router.post("/login", loginSeller);
 router.get("/logout", logoutSeller);
 router.get("/check-auth", authSeller, checkSellerAuth);
 
-// Product Management Routes
-router.post("/add-product", upload.array("images", 4), addProductWithImages);
-router.get("/products", getAllProductsForSeller);
-router.put("/update/:id", updateProductDetails);
+// Product Management Routes (seller only)
+router.post("/add-product", authSeller, upload.array("images", 4), addProductWithImages);
+router.get("/products", authSeller, getAllProductsForSeller);
+router.put("/update/:id", authSeller, updateProductDetails);
 
 // Update order status (seller only)
 router.put("/update-order-status/:id", authSeller, updateOrderStatus);

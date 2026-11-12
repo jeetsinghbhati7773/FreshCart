@@ -1,6 +1,7 @@
 import prisma from "../config/prisma.js";
 import { validateCartInventory, adjustStock } from "../services/inventoryService.js";
 import { clearCart } from "../services/cartService.js";
+import { updateOrderStatusWithLifecycle } from "../services/orderLifecycleService.js";
 
 export const createOrder = async (req, res) => {
   const { products, shippingAddress, paymentMethod } = req.body;
@@ -162,6 +163,7 @@ export const getAllOrdersForSeller = async (req, res) => {
 
     const formattedOrders = orders.map((o) => ({
       ...o,
+      _id: o.id,
       products: o.orderItems.map((item) => ({
         product: item.product,
         quantity: item.quantity,
@@ -175,18 +177,23 @@ export const getAllOrdersForSeller = async (req, res) => {
   }
 };
 
-// PUT /api/orders/:id/status
+// PUT /api/seller/update-order-status/:id
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const order = await prisma.order.update({
-      where: { id: req.params.id },
-      data: { status },
-    });
+    const result = await updateOrderStatusWithLifecycle(req.params.id, status);
 
-    res.status(200).json({ success: true, message: "Status updated", order });
+    res.status(200).json({
+      success: true,
+      message: `Status updated from "${result.previousStatus}" to "${result.newStatus}"`,
+      order: result.order,
+      previousStatus: result.previousStatus,
+      newStatus: result.newStatus,
+      stockRestored: result.stockRestored,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({ success: false, message: error.message });
   }
 };
 

@@ -252,6 +252,15 @@ export async function updateProduct(id, data) {
     updateData.stockQuantity = Math.max(0, parseInt(data.stockQuantity, 10));
     updateData.inStock = updateData.stockQuantity > 0;
   }
+  if (data.lowStockThreshold !== undefined) {
+    updateData.lowStockThreshold = Math.max(0, parseInt(data.lowStockThreshold, 10));
+  }
+  if (data.safetyStock !== undefined) {
+    updateData.safetyStock = Math.max(0, parseInt(data.safetyStock, 10));
+  }
+  if (data.leadTimeDays !== undefined) {
+    updateData.leadTimeDays = Math.max(1, parseInt(data.leadTimeDays, 10));
+  }
   if (data.inStock !== undefined) updateData.inStock = Boolean(data.inStock);
   if (data.isActive !== undefined) updateData.isActive = Boolean(data.isActive);
   if (data.image !== undefined) {

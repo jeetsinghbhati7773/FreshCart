@@ -92,6 +92,11 @@ const ShoppingAssistant = () => {
   const loadConversations = async (targetActiveId = null) => {
     setLoadingConversations(true);
     try {
+      const storedActiveId = sessionStorage.getItem("shoppilot_active_conv_id");
+      if (user && storedActiveId && localStorage.getItem("token")) {
+        await aiChatService.claimConversation(storedActiveId).catch(() => null);
+      }
+
       const res = await aiChatService.fetchConversations({
         status: conversationTab,
         search: searchQuery,
@@ -103,9 +108,8 @@ const ShoppingAssistant = () => {
       // Select conversation: priority to targetActiveId, or stored in session, or first in list
       let selectedId = targetActiveId;
       if (!selectedId) {
-        const stored = sessionStorage.getItem("shoppilot_active_conv_id");
-        if (stored && list.some((c) => c.id === stored)) {
-          selectedId = stored;
+        if (storedActiveId && list.some((c) => c.id === storedActiveId)) {
+          selectedId = storedActiveId;
         } else if (list.length > 0) {
           selectedId = list[0].id;
         }
@@ -355,6 +359,10 @@ const ShoppingAssistant = () => {
   };
 
   const handleAddToCart = async () => {
+    if (!user) {
+      setShowUserLogin(true);
+      return;
+    }
     if (!optimizedCart || !optimizedCart.items || optimizedCart.items.length === 0) return;
     setIsAddingToCart(true);
     try {
@@ -369,6 +377,10 @@ const ShoppingAssistant = () => {
         if (refreshBackendCart) {
           await refreshBackendCart();
         }
+        setOptimizedCart(null);
+        setGroceryPlan([]);
+        setMatchedProducts([]);
+        setIntent(null);
         setTimeout(() => setAddedSuccess(false), 4000);
       }
     } catch (err) {

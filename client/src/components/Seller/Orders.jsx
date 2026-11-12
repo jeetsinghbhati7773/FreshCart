@@ -11,6 +11,7 @@ const SellerOrders = () => {
     "Packing",
     "Out for Delivery",
     "Delivered",
+    "Cancelled",
   ];
 
   useEffect(() => {

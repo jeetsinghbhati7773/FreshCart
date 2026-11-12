@@ -336,6 +336,66 @@ class AIConversationController {
       console.warn("Preference learning warning:", err.message);
     }
   }
+
+  /**
+   * POST /api/ai/conversations/:id/claim
+   * Transfer ownership of a guest conversation to the newly logged-in user.
+   */
+  async claimConversation(req, res) {
+    try {
+      if (req.user.email === "guest@freshcart.local") {
+        return res.status(401).json({ success: false, message: "Login required to claim conversation" });
+      }
+
+      const conversation = await prisma.chatConversation.findUnique({
+        where: { id: req.params.id },
+      });
+      if (!conversation) {
+        return res.status(404).json({ success: false, message: "Conversation not found" });
+      }
+      const guestUser = await prisma.user.findUnique({
+        where: { email: "guest@freshcart.local" },
+        select: { id: true },
+      });
+
+      if (conversation.userId === req.user.id) {
+        if (guestUser) {
+          await prisma.chatMessage.updateMany({
+            where: { conversationId: conversation.id, userId: guestUser.id },
+            data: { userId: req.user.id },
+          });
+        }
+        return res.json({ success: true, conversation });
+      }
+
+      if (!guestUser || conversation.userId !== guestUser.id) {
+        return res.status(403).json({ success: false, message: "Cannot claim another user's conversation" });
+      }
+
+      const updated = await prisma.$transaction(async (tx) => {
+        await tx.chatMessage.updateMany({
+          where: { conversationId: conversation.id, userId: guestUser.id },
+          data: { userId: req.user.id },
+        });
+        await tx.conversationSummary.updateMany({
+          where: { conversationId: conversation.id, userId: guestUser.id },
+          data: { userId: req.user.id },
+        });
+        return tx.chatConversation.update({
+          where: { id: conversation.id },
+          data: { userId: req.user.id },
+        });
+      });
+
+      return res.json({ success: true, conversation: updated });
+    } catch (err) {
+      console.error("Claim conversation error:", err);
+      return res.status(500).json({
+        success: false,
+        message: err.message || "Failed to claim conversation",
+      });
+    }
+  }
 }
 
 export default new AIConversationController();

@@ -68,7 +68,7 @@ export const logoutUser = (req, res) => {
 };
 
 export const getUserProfile = (req, res) => {
-  res.status(200).json(req.user);
+  res.status(200).json({ ...req.user, _id: req.user.id });
 };
 
 export const resetPassword = async (req, res) => {

@@ -47,7 +47,8 @@ const App = () => {
           <Route path="/shopping-assistant" element={<ShoppingAssistant />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/payment-methods" element={<PaymentMethods />} />
-          <Route path="/seller-login" element={<SellerLogin />} />
+          {/* <Route path="/seller-login" element={<SellerLogin />} /> */}
+          <Route path="/seller-login" element={<Seller />} />
           <Route
             path="/seller"
             element={
@@ -62,7 +63,7 @@ const App = () => {
           <Route path="/payment-cancelled" element={<PaymentCancelled />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        {user && <UserChat />}
+        {!isSellerPath && user && <UserChat />}
         <Toaster
           position="top-center"
           toastOptions={{ duration: 1000 }}

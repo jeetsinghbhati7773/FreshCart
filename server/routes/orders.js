@@ -1,5 +1,6 @@
 import express from "express";
 import authUser from "../middlewares/authUser.js";
+import authSeller from "../middlewares/authSeller.js";
 import {
   createOrder,
   getMyOrders,
@@ -12,7 +13,7 @@ const router = express.Router();
 
 router.post("/", authUser, createOrder);
 router.get("/my", authUser, getMyOrders);
-router.get("/all", getAllOrdersForSeller);
+router.get("/all", authSeller, getAllOrdersForSeller);
 
 // User checks status by Order ID (no auth needed)
 router.get("/status/:id", getOrderStatus);

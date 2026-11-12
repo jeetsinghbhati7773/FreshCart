@@ -19,19 +19,22 @@ const MyOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+      // Login disabled: allow fetching guest orders without requiring token
+      // if (!token) {
+      //   setLoading(false);
+      //   return;
+      // }
 
       try {
         const res = await axios.get(
           `${API_URL}/orders/my`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          token
+            ? {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+            : {}
         );
         setOrders(res.data.orders || []);
       } catch (err) {
@@ -54,9 +57,8 @@ const MyOrders = () => {
             <div key={step} className="flex items-center gap-2">
               <div className="relative">
                 <div
-                  className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                    currentIndex >= idx ? "bg-green-600" : "bg-gray-300"
-                  }`}
+                  className={`w-3 h-3 rounded-full transition-all duration-500 ${currentIndex >= idx ? "bg-green-600" : "bg-gray-300"
+                    }`}
                 >
                   {currentIndex >= idx && (
                     <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
@@ -67,18 +69,16 @@ const MyOrders = () => {
                 )}
               </div>
               <span
-                className={`transition-colors duration-300 ${
-                  currentIndex >= idx ? "text-green-600" : "text-gray-400"
-                }`}
+                className={`transition-colors duration-300 ${currentIndex >= idx ? "text-green-600" : "text-gray-400"
+                  }`}
               >
                 {step}
               </span>
               {idx !== statuses.length - 1 && (
                 <div className="relative w-6 h-0.5 sm:w-8 bg-gray-300 overflow-hidden">
                   <div
-                    className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out ${
-                      currentIndex > idx ? "w-full bg-green-600" : "w-0"
-                    }`}
+                    className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out ${currentIndex > idx ? "w-full bg-green-600" : "w-0"
+                      }`}
                   ></div>
                 </div>
               )}
@@ -98,26 +98,11 @@ const MyOrders = () => {
     );
   }
 
-  const token = localStorage.getItem("token");
-  if (!user && !token) {
-    return (
-      <div className="min-h-screen mt-24 bg-white px-4 py-16 flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 mb-4 text-3xl">
-          📦
-        </div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Please Sign In</h2>
-        <p className="text-gray-500 text-sm max-w-sm mb-6">
-          You need to be logged in to view your order history and tracking updates.
-        </p>
-        <button
-          onClick={() => setShowUserLogin(true)}
-          className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-full shadow transition hover:scale-105"
-        >
-          Login to Your Account
-        </button>
-      </div>
-    );
-  }
+  // Login disabled: show orders directly without sign-in gate
+  // const token = localStorage.getItem("token");
+  // if (!user && !token) {
+  //   return ( ... Login to Your Account ... );
+  // }
 
   return (
     <div className="min-h-screen mt-20 bg-white px-4 py-6 sm:px-6 lg:px-8">
@@ -214,13 +199,12 @@ const MyOrders = () => {
                       {new Date(order.createdAt).toLocaleDateString("en-GB")}
                     </p>
                     <p
-                      className={`text-center font-semibold text-xs px-2 py-0.5 rounded-full ${
-                        order.paymentStatus === "Paid" || order.paymentMethod === "Online"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : order.paymentStatus === "Cancelled" || order.paymentStatus === "Failed"
+                      className={`text-center font-semibold text-xs px-2 py-0.5 rounded-full ${order.paymentStatus === "Paid" || order.paymentMethod === "Online"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : order.paymentStatus === "Cancelled" || order.paymentStatus === "Failed"
                           ? "bg-red-100 text-red-700"
                           : "bg-amber-100 text-amber-800"
-                      }`}
+                        }`}
                     >
                       {order.paymentStatus || (order.paymentMethod === "Online" ? "Paid" : "Pending")}
                     </p>
@@ -289,11 +273,10 @@ const MyOrders = () => {
                       ₹{order.totalAmount || "N/A"}
                     </p>
                     <p
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${
-                        order.paymentStatus === "Paid" || order.paymentMethod === "Online"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-amber-100 text-amber-800"
-                      }`}
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${order.paymentStatus === "Paid" || order.paymentMethod === "Online"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-amber-100 text-amber-800"
+                        }`}
                     >
                       {order.paymentStatus || (order.paymentMethod === "Online" ? "Paid" : "Pending")}
                     </p>

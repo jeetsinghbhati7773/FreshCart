@@ -151,6 +151,10 @@ export default function AiChatWidget() {
   };
 
   const handleAddCartItems = async (cart) => {
+    if (!user) {
+      setShowUserLogin(true);
+      return;
+    }
     if (!cart || !cart.items || cart.items.length === 0) return;
     setIsAddingToCart(true);
     try {

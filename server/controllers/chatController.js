@@ -24,7 +24,7 @@ export const getAllUsersInChat = async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.status(200).json(users);
+    res.status(200).json(users.map((u) => ({ ...u, _id: u.id })));
   } catch (error) {
     console.error("Error fetching chat users:", error);
     res.status(500).json({ error: "Failed to fetch chat users" });

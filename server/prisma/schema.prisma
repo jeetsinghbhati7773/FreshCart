@@ -40,9 +40,12 @@ model Product {
   price         Float
   image         String[]
   category      String
-  inStock       Boolean     @default(true)
-  stockQuantity Int         @default(50) @map("stock_quantity")
-  isActive      Boolean     @default(true) @map("is_active")
+  inStock           Boolean     @default(true)
+  stockQuantity     Int         @default(50) @map("stock_quantity")
+  lowStockThreshold Int         @default(10) @map("low_stock_threshold")
+  safetyStock       Int         @default(5) @map("safety_stock")
+  leadTimeDays      Int         @default(2) @map("lead_time_days")
+  isActive          Boolean     @default(true) @map("is_active")
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -341,4 +344,56 @@ model UserBrandPreference {
   @@unique([userId, brand])
   @@index([userId, preferenceScore(sort: Desc)])
   @@map("user_brand_preferences")
+}
+
+model SellerAiConversation {
+  id            String                @id @default(uuid())
+  sellerEmail   String                @map("seller_email")
+  title         String                @default("Seller Assistant")
+  status        String                @default("active")
+  lastMessageAt DateTime              @default(now()) @map("last_message_at")
+  createdAt     DateTime              @default(now()) @map("created_at")
+  updatedAt     DateTime              @updatedAt @map("updated_at")
+
+  messages       SellerAiMessage[]
+  pendingActions SellerPendingAction[]
+
+  @@index([sellerEmail, status])
+  @@index([sellerEmail, lastMessageAt(sort: Desc)])
+  @@map("seller_ai_conversations")
+}
+
+model SellerAiMessage {
+  id             String               @id @default(uuid())
+  conversationId String               @map("conversation_id")
+  conversation   SellerAiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String               // "user", "assistant", "system", "tool"
+  content        String
+  messageType    String               @default("text") @map("message_type") // "text", "confirmation", "analytics", "orders", "inventory"
+  metadata       Json?
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  @@index([conversationId, createdAt(sort: Asc)])
+  @@map("seller_ai_messages")
+}
+
+model SellerPendingAction {
+  id             String               @id @default(uuid())
+  conversationId String               @map("conversation_id")
+  conversation   SellerAiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sellerEmail    String               @map("seller_email")
+  actionType     String               @map("action_type") // "UPDATE_ORDER_STATUS", "UPDATE_PRODUCT_STOCK"
+  targetId       String               @map("target_id")
+  payload        Json
+  summary        String
+  status         String               @default("PENDING") // "PENDING", "CONFIRMED", "CANCELLED", "EXPIRED", "FAILED"
+  expiresAt      DateTime             @map("expires_at")
+  executedAt     DateTime?            @map("executed_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+
+  @@index([conversationId, status])
+  @@index([sellerEmail, status])
+  @@map("seller_pending_actions")
 }

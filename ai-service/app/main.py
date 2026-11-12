@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.api.routes import health, chat, shopping_plan, cart_optimization
+from app.api.routes import health, chat, shopping_plan, cart_optimization, seller_chat
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,6 +50,7 @@ app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(shopping_plan.router)
 app.include_router(cart_optimization.router)
+app.include_router(seller_chat.router)
 
 
 @app.exception_handler(Exception)

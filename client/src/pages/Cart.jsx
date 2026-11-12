@@ -23,7 +23,7 @@ const Cart = () => {
   } = useAppContext();
 
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [paymentMethod, setPaymentMethod] = useState("PayPal");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalPrice = cartSummary?.subtotal || cartItems.reduce(
@@ -363,7 +363,8 @@ const Cart = () => {
                   <label className="text-xs font-bold uppercase text-gray-500 tracking-wider block mb-2">
                     Payment Method
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
+                    {/* COD option temporarily commented out
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("COD")}
@@ -375,7 +376,9 @@ const Cart = () => {
                       <span>💵</span>
                       <span>COD</span>
                     </button>
+                    */}
 
+                    {/* Razorpay option temporarily commented out
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("Online")}
@@ -387,6 +390,7 @@ const Cart = () => {
                       <span>💳</span>
                       <span>Razorpay</span>
                     </button>
+                    */}
 
                     <button
                       type="button"

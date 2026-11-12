@@ -52,6 +52,15 @@ export const aiChatService = {
     return response.data;
   },
 
+  async claimConversation(conversationId) {
+    const response = await axios.post(
+      `${API_URL}/ai/conversations/${conversationId}/claim`,
+      {},
+      { headers: getAuthHeaders() }
+    );
+    return response.data.conversation;
+  },
+
   // --- Messages ---
   async fetchMessages(conversationId, { limit = 50, beforeId = null } = {}) {
     const params = { limit };

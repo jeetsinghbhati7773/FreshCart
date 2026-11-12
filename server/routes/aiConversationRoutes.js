@@ -13,6 +13,7 @@ router.get("/:id", (req, res) => aiConversationController.getConversation(req, r
 router.patch("/:id", (req, res) => aiConversationController.updateConversation(req, res));
 router.delete("/:id", (req, res) => aiConversationController.deleteConversation(req, res));
 
+router.post("/:id/claim", (req, res) => aiConversationController.claimConversation(req, res));
 router.get("/:id/messages", (req, res) => aiConversationController.getMessages(req, res));
 router.post("/:id/messages", (req, res) => aiConversationController.sendMessage(req, res));
 

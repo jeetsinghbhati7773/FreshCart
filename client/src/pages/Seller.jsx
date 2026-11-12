@@ -3,6 +3,8 @@ import AddItems from "../components/Seller/AddItems";
 import ManageStock from "../components/Seller/ManageStock";
 import Orders from "../components/Seller/Orders";
 import SellerUserChats from "../components/Seller/SellerUserChats";
+import SellerAiAssistant from "../components/Seller/SellerAiAssistant";
+import { Bot } from "lucide-react";
 import { HiMenu } from "react-icons/hi";
 import axios from "../utils/axiosInstance";
 import toast from "react-hot-toast";
@@ -84,6 +86,11 @@ const Seller = () => {
         </svg>
       ),
     },
+    {
+      id: "aiAssistant",
+      name: "AI Assistant",
+      icon: <Bot className="w-5 h-5" />,
+    },
   ];
 
   const componentsMap = {
@@ -91,6 +98,7 @@ const Seller = () => {
     stock: <ManageStock />,
     orders: <Orders />,
     userChats: <SellerUserChats />,
+    aiAssistant: <SellerAiAssistant />,
   };
 
   const handleLogout = async () => {

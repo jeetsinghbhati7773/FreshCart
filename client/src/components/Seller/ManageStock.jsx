@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { FiEdit } from "react-icons/fi";
-import axios from "axios";
-import { API_URL } from "../../config";
+import { sellerAxios } from "../../utils/axiosInstance";
 import toast from "react-hot-toast";
 
 const ManageStock = () => {
@@ -10,10 +9,7 @@ const ManageStock = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(
-          `${API_URL}/seller/products`
-        );
-        //console.log("👉 Backend Response:", res.data);
+        const res = await sellerAxios.get("/seller/products");
         setProducts(res.data);
       } catch (err) {
         toast.error("Failed to fetch products");
@@ -43,6 +39,12 @@ const ManageStock = () => {
                   Offer Price
                 </th>
                 <th className="px-4 py-3 font-medium whitespace-nowrap">
+                  Stock Qty
+                </th>
+                <th className="px-4 py-3 font-medium hidden lg:table-cell whitespace-nowrap">
+                  Low Threshold
+                </th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">
                   In Stock
                 </th>
               </tr>
@@ -51,7 +53,7 @@ const ManageStock = () => {
             <tbody className="text-gray-700 bg-white">
               {Array.isArray(products) &&
                 products.map((product) => (
-                  <ProductRow key={product._id} product={product} />
+                  <ProductRow key={product.id || product._id} product={product} />
                 ))}
             </tbody>
           </table>
@@ -62,8 +64,13 @@ const ManageStock = () => {
 };
 
 const ProductRow = ({ product }) => {
+  const productId = product.id || product._id;
   const [isEditing, setIsEditing] = useState(false);
   const [price, setPrice] = useState(product.offerPrice);
+  const [stockQuantity, setStockQuantity] = useState(product.stockQuantity ?? 0);
+  const [lowStockThreshold, setLowStockThreshold] = useState(
+    product.lowStockThreshold ?? 10
+  );
   const [inStock, setInStock] = useState(product.inStock);
 
   const inputRef = useRef(null);
@@ -71,13 +78,15 @@ const ProductRow = ({ product }) => {
 
   const updateProduct = async () => {
     try {
-      await axios.put(
-        `${API_URL}/seller/update/${product._id}`,
-        {
-          offerPrice: Number(price),
-          inStock,
-        }
-      );
+      const parsedQty = Math.max(0, Number(stockQuantity));
+      const parsedThreshold = Math.max(0, Number(lowStockThreshold));
+      await sellerAxios.put(`/seller/update/${productId}`, {
+        offerPrice: Number(price),
+        stockQuantity: parsedQty,
+        lowStockThreshold: parsedThreshold,
+        inStock: parsedQty > 0 ? inStock : false,
+      });
+      setInStock(parsedQty > 0 ? inStock : false);
       toast.success(`Updated "${product.name}"`);
     } catch {
       toast.error("Update failed");
@@ -111,13 +120,11 @@ const ProductRow = ({ product }) => {
     const newVal = !inStock;
     setInStock(newVal);
     try {
-      await axios.put(
-        `${API_URL}/seller/update/${product._id}`,
-        {
-          offerPrice: Number(price),
-          inStock: newVal,
-        }
-      );
+      await sellerAxios.put(`/seller/update/${productId}`, {
+        offerPrice: Number(price),
+        stockQuantity: Number(stockQuantity),
+        inStock: newVal,
+      });
       toast.success(`Stock updated for "${product.name}"`);
     } catch {
       toast.error("Failed to update stock");
@@ -183,6 +190,35 @@ const ProductRow = ({ product }) => {
             <FiEdit size={16} />
           </button>
         </div>
+      </td>
+
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min="0"
+            value={stockQuantity}
+            onChange={(e) => setStockQuantity(e.target.value)}
+            onBlur={updateProduct}
+            className="w-20 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          {Number(stockQuantity) === 0 ? (
+            <span className="text-[11px] font-semibold text-red-600">Out</span>
+          ) : Number(stockQuantity) <= Number(lowStockThreshold) ? (
+            <span className="text-[11px] font-semibold text-amber-600">Low</span>
+          ) : null}
+        </div>
+      </td>
+
+      <td className="px-4 py-3 hidden lg:table-cell">
+        <input
+          type="number"
+          min="0"
+          value={lowStockThreshold}
+          onChange={(e) => setLowStockThreshold(e.target.value)}
+          onBlur={updateProduct}
+          className="w-20 px-2 py-1 rounded border border-gray-300 bg-white font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+        />
       </td>
 
       <td className="px-4 py-3">
